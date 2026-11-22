@@ -1,0 +1,407 @@
+/* ============================================================
+   respiration.css — what is this lab's own: the header in the ink of The body shelf, the left column
+   that each station fills with its own picture, the cards that open one at a time, and the moving pictures of Topic 12.
+   Every colour of the page is a token, defined in the bright AND the dark version (memory bright-and-dark-versions). The
+   frame's rules are the Immunity Lab's (itself the Cells Lab's). The pictures are dark "screens" in both versions: their
+   colours are in js/mem-draw.js.
+   ============================================================ */
+:root{
+  --accent:#0B6A8C; --accent-2:#0C7BA3; --accent-tint:#E1F1F8;
+  --c12:rgba(255,255,255,.12);
+  /* the inks of the Learn tab (js/terms.js): structures, processes, substances, as in his topic summaries */
+  --k-struct:#1B7A43; --k-proc:#B5530F; --k-subst:#B4285F;
+  --on-photo-veil:rgba(14,20,27,.40);
+  /* the parts of a station (a block of What you need to know, and its button on the picture): blue and teal, far from the
+     inks of the words (green, orange, rose); the teal is close to the lab's own (violet until 11 Nov 2026, when violet came to mean extension; Daniel chose teal) */
+  --pt1-ink:#1E5BB8; --pt1-tint:#EAF1FC; --pt1-edge:#B9D0F2; --pt2-ink:#0F766E; --pt2-tint:#E6F4F1; --pt2-edge:#A8D8CF;
+}
+@media (prefers-color-scheme: dark){
+:root:not([data-theme="light"]){
+  --accent:#6FD0F5; --accent-2:#4FC3F7; --accent-tint:#10303F;
+  --k-struct:#6EDB9A; --k-proc:#F5A35C; --k-subst:#F48FB4;
+  --pt1-ink:#8DB9FF; --pt1-tint:#14233A; --pt1-edge:#2C4C7A; --pt2-ink:#7FD8C9; --pt2-tint:#12302C; --pt2-edge:#2D6A61;
+}
+}
+:root[data-theme="dark"]{
+  --accent:#6FD0F5; --accent-2:#4FC3F7; --accent-tint:#10303F;
+  --k-struct:#6EDB9A; --k-proc:#F5A35C; --k-subst:#F48FB4;
+  --pt1-ink:#8DB9FF; --pt1-tint:#14233A; --pt1-edge:#2C4C7A; --pt2-ink:#7FD8C9; --pt2-tint:#12302C; --pt2-edge:#2D6A61;
+}
+
+/* ---------- the header: the shelf's own colours, never the other labs' green ---------- */
+.hdr{background:var(--hdr-bg);color:var(--hdr-ink);border-bottom:1px solid var(--hdr-line);box-shadow:none}
+.hdr__title{font-weight:700;letter-spacing:-.01em}
+/* his name is never cut (memory header-footer-credit): the topic line gives way first */
+.hdr__title,.hdr__by{flex:none}
+.hdr__mark{flex:none}
+@media (max-width:1800px){ .hdr__sub{display:none} }
+@media (max-width:1300px) and (min-width:1001px){ .stat--stations{display:none} }
+/* a laptop: the byline steps under the lab's name, and a long sign-in message takes a second row rather than pushing a button off the window */
+@media (max-width:1800px) and (min-width:821px){ .hdr__mark{flex-direction:column;align-items:flex-start;gap:0} }
+@media (min-width:821px){ .hdr__stats{flex:0 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;row-gap:4px} }
+@media (max-width:1180px) and (min-width:1001px){ .stat__lbl{display:none} .stat{padding:4px 10px 4px 5px} }
+.hdr__sub{color:var(--hdr-soft);opacity:1;font-size:12.5px;min-width:0;flex:0 1 auto}
+.hdr__by{color:var(--hdr-soft);opacity:1}
+.hdr__by:hover,.hdr__by:focus-visible{color:var(--hdr-ink)}
+.badge{background:var(--hdr-veil);border:1px solid var(--hdr-line);color:var(--hdr-ink);cursor:pointer}
+.stat{background:var(--hdr-veil);border:1px solid var(--hdr-line);color:var(--hdr-ink)}
+.stat--go:hover,.stat--go:focus-visible{background:var(--accent-tint)}
+.ring .bg{stroke:var(--hdr-line)}
+.ring .fg{stroke:var(--accent-2)}
+.hbtn{background:var(--hdr-veil);border:1px solid var(--hdr-line);color:var(--hdr-ink);text-decoration:none}
+.hbtn:hover{background:var(--accent-tint)}
+.hbtn--save.is-ok{background:var(--accent-tint);color:var(--accent);border-color:var(--accent-2)}
+.hbtn--save.is-ok:hover{background:var(--accent-tint)}
+.hbtn--save.is-busy{background:var(--hdr-veil);color:var(--hdr-ink);border-style:dashed}
+.hbtn--save.is-no{background:var(--bad-tint);color:var(--bad);border-color:var(--bad)}
+.hbtn--save.is-no:hover{background:var(--bad-tint)}
+.hbtn--save.is-off{background:transparent;color:var(--hdr-ink);border-style:dashed}
+/* the way back (14 Oct 2026, Daniel: pupils missed it): a solid pill in the lab's green, first in the header; the header's own white (dark at night) as its words */
+.hbtn--back{background:var(--accent);border-color:var(--accent);color:var(--hdr-bg);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.hbtn--back:hover,.hbtn--back:focus-visible{background:var(--accent-2);border-color:var(--accent-2);color:var(--hdr-bg)}
+#btnTheme{white-space:nowrap}
+
+/* the station's heading: a piece of membrane in the accent, and a particle crossing it in the substance rose */
+.st-head__ic{background:var(--accent-tint);border:1px solid var(--edge);color:var(--accent)}
+.st-head__ic .ic-cell{stroke:var(--accent)}
+.st-head__ic .ic-nuc{stroke:var(--k-subst)}
+.st-title{color:var(--ink);font-weight:700;letter-spacing:-.015em}
+
+/* ---------- the left column: each station's own picture ---------- */
+.platecol{position:relative;min-height:0;overflow:hidden;display:flex;flex-direction:column;
+  background:var(--col-bg);color:var(--col-ink);border-right:1px solid var(--col-line)}
+.platecol__tools{position:relative;z-index:6;display:flex;align-items:center;gap:10px;padding:8px 12px;min-height:0}
+.platecol__tools:empty{display:none}
+.tool{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--col-ink);cursor:pointer;
+  border:1px solid var(--col-line);border-radius:var(--r-pill);padding:6px 12px;background:var(--col-card)}
+.tool:hover{border-color:var(--accent)}
+.tool[hidden]{display:none}
+.tool--sim{margin-right:auto}
+.viewhost{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.viewhost[hidden]{display:none}
+.view{flex:1;min-height:0;display:flex;flex-direction:column}
+.view[hidden]{display:none}
+.said{position:relative;z-index:4;margin:0;padding:8px 16px 12px;text-align:center;border-top:1px solid var(--col-line);background:var(--col-bg)}
+.said:empty{display:none}
+.said__name{display:block;font-size:14px;font-weight:600;color:var(--col-ink)}
+.said__credit{display:block;font-size:11.5px;color:var(--col-soft);margin-top:2px}
+/* a picture of several photographs: its credits folded under it (Daniel, 4 Nov 2026), open upwards into the picture's space */
+.said__fold{margin-top:3px;font-size:12.5px;color:var(--col-soft)}
+.said__fold summary{display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:2px 8px;border-radius:6px;list-style:none}
+.said__fold summary::-webkit-details-marker{display:none}
+.said__fold summary::before{content:'\25B8';font-size:11px}
+.said__fold[open] summary::before{content:'\25BE'}
+.said__fold summary:hover{color:var(--col-ink)}
+.said__fold summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.said__list{margin:4px auto 0;padding:0;list-style:none;text-align:left;display:inline-block;max-width:100%;line-height:1.45}
+.said__list b{color:var(--col-ink);font-weight:600}
+.sim{flex:1;min-height:0;overflow:auto;padding:12px 14px 16px;display:flex;flex-direction:column}
+.sim[hidden]{display:none}
+.sim .widget{margin-top:0;border:none;box-shadow:none;background:transparent;padding:0}
+.platecol.is-sim .said{display:none}
+.stg__park{display:none}
+.stg__title{margin:2px 0 0;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.stg__title[hidden]{display:none}
+
+/* a button that belongs to a picture */
+.vbtn{font:inherit;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  border:1.5px solid var(--accent);border-radius:var(--r-pill);background:var(--col-card);color:var(--accent);padding:7px 16px}
+.vbtn:hover{background:var(--accent-tint)}
+.vbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* labels on a picture: the line ends ON the part, no dot (Daniel, 4 Oct 2026) */
+.lb__dot{display:none}
+/* label lines one steady width on screen, however far a picture is scaled to fit (8 Oct 2026) */
+svg .lb__lead,svg .lb__halo{vector-effect:non-scaling-stroke}
+/* the pale band under a label line stops where the line stops: with a round end it covered a ribosome or a
+   mitochondrion the line touched (18 Oct 2026) */
+.lb__halo{stroke:var(--col-bg);stroke-linecap:butt}
+.lb__lead{stroke:var(--col-ink)}
+.lb__txt{fill:var(--col-ink);stroke:var(--col-bg)}
+/* a word whose key-word card is at the bottom of this station: the faint rule of a definition and a small arrow down,
+   for "down to its card here" (25 Oct 2026) */
+.t.is-kw,.tc.is-kw{cursor:pointer;border-bottom:1px dotted var(--c49);padding-bottom:1px}
+.t.is-kw::after,.tc.is-kw::after{content:"↓";font-size:.72em;vertical-align:.2em;margin-left:1px;opacity:.75}
+.t.is-kw:hover,.tc.is-kw:hover{background:var(--c41);border-radius:3px}
+.t.is-kw:focus-visible,.tc.is-kw:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+/* a name that opens its card (views/figure.js gives it role="button"); any other name is only a name: no hand, no colour */
+.lb[role="button"]{cursor:pointer}
+.lb__lead,.lb__halo{pointer-events:none}
+.lb:focus-visible{outline:none}
+.lb[role="button"]:focus-visible .lb__txt,.lb[role="button"]:hover .lb__txt{fill:var(--accent)}
+.lb.is-lit .lb__txt{fill:var(--accent);font-weight:700}
+.lb.is-lit .lb__lead{stroke:var(--accent);stroke-width:2.6}
+.lb.is-dim{opacity:.45}
+
+/* a picture's own buttons, in a bar above it */
+.vbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;padding:0 6px 6px}
+
+/* ---------- a sentence as a card: the heading always shows, the words open one card at a time ---------- */
+.exam-list > li.xcard{padding:0;margin:0 0 8px}
+.exam-list > li.xcard::before{display:none}
+.xcard__h{width:100%;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;
+  font:inherit;font-size:15.5px;font-weight:600;color:var(--ink);background:var(--card-2);
+  border:1px solid var(--edge);border-radius:var(--r);padding:10px 14px}
+.xcard__h:hover{border-color:var(--accent)}
+.xcard__h:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xcard__t{flex:1;min-width:0}
+.xcard__a{width:9px;height:9px;border-right:2px solid var(--grey);border-bottom:2px solid var(--grey);transform:rotate(45deg);transition:transform .2s;flex:none;margin-top:-4px}
+.xcard.is-open .xcard__h{border-color:var(--accent);background:var(--accent-tint);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.xcard.is-open .xcard__a{transform:rotate(225deg);margin-top:4px}
+.xcard__b{border:1px solid var(--accent);border-top:0;border-radius:0 0 var(--r) var(--r);padding:12px 14px;background:var(--card)}
+.xcard__b[hidden]{display:none}
+/* a film (a step animation) in a card of its own (copied from the Inheritance Lab, 8 Nov 2026), drawn as a dark "screen", like a video player, so a pupil sees at once
+   that it opens an animation (Daniel, 8 Nov 2026: "a different kind of tab that has a different background"; then: not
+   purple, "because purple is the color that you use for IB extensions … not any other color used for color coding, but
+   still easy to see"). --anim: ink in a bright page, near white in a dark one; it is also the player's Play button, step
+   bar and current step, so nothing in an animation is purple. The widget's own title is the card's heading. */
+:root{--anim:#1B2430;--anim-ink:#FFFFFF;--anim-soft:#C9D2DC}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--anim:#E6EBF1;--anim-ink:#121820;--anim-soft:#3B4756}}
+:root[data-theme="dark"]{--anim:#E6EBF1;--anim-ink:#121820;--anim-soft:#3B4756}
+.xcard--film .xcard__h{background:var(--anim);border-color:var(--anim);color:var(--anim-ink)}
+.xcard--film .xcard__h:hover{filter:brightness(1.12)}
+.xcard--film.is-open .xcard__h{background:var(--anim);color:var(--anim-ink)}
+.xcard--film .xcard__h:focus-visible{outline-color:var(--anim)}
+.xcard--film .xcard__a{border-color:var(--anim-ink)}
+.xcard--film .xcard__b{border-color:var(--anim)}
+.xcard__play{flex:none;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--anim-ink);color:var(--anim);font-size:11px;padding-left:2px}
+.xcard__kind{display:block;font-size:12.5px;font-weight:600;color:var(--anim-soft);margin-top:1px}
+.xcard--film .xcard__b > .widget > .widget__h,.xcard--film .xcard__b > .widget > .widget__ask,
+.xcard--film .lvw__bar + .widget > .widget__h,.xcard--film .lvw__bar + .widget > .widget__ask{display:none}
+.exam-part[class*="exam-part--"] .xcard--film .xcard__h,.exam-part[class*="exam-part--"] .xcard--film .xcard__h:hover,.exam-part[class*="exam-part--"] .xcard--film.is-open .xcard__h{background:var(--anim);border-color:var(--anim);color:var(--anim-ink)}
+.exam-part[class*="exam-part--"] .xcard--film .xcard__b{border-color:var(--anim)}
+/* the player in the animation colour: Play, the step bar, the step on screen and its words' panel */
+.sp__bar{--sp:var(--anim)}
+.sp__play{color:var(--anim-ink)}
+.sp__step.is-on .sp__stepb{border-color:var(--anim);background:color-mix(in srgb,var(--anim) 7%,var(--card))}
+.sp__step.is-on .sp__num{background:var(--anim);color:var(--anim-ink)}
+.sp__now.sp__now--panel{border-left-color:var(--anim)}
+@keyframes sp-next{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--anim) 45%,transparent)}100%{box-shadow:0 0 0 11px transparent}}
+/* a widget, photo or table inside a card sits inside it: the list's bullet margin (-26px in app.css) does not apply here */
+.exam-list li.xcard .widget,.exam-list li.xcard .media,.exam-list li.xcard .photo,.exam-list li.xcard .ctable{margin-left:0;margin-right:0;max-width:100%}
+/* a closed tooltip takes no room: laid out while hidden, it made the panel scroll sideways when its word sat near the
+   right edge (8 Oct 2026); it shows on hover, on focus and when pressed, as before */
+/* a grid question's row names wrap, so the table fits a narrow panel without scrolling inside the question */
+.gridq tbody th{white-space:normal;min-width:6.5em}
+/* a picture in a pop-up never takes more than a third of the screen's height, so its words stay beside the word pressed */
+.peek img{max-height:34vh;object-fit:contain}
+/* "Going further": a long reference wraps inside its card instead of running past it */
+.later__ref{max-width:100%;white-space:normal}
+/* the picture's fold button: the page's own sans and sentence case, a comfortable tap */
+.fold{font-family:var(--font);font-size:12.5px;letter-spacing:0;text-transform:none;min-height:32px}
+/* a question's picture: every ring has a larger invisible tap area, and on a drawing the ring does not hide its part */
+.hs__pt::before{content:"";position:absolute;inset:-9px;border-radius:50%}
+.hs__stage--fig .hs__pt{background:transparent}
+/* the keyword cards' prompt reads at full strength */
+.kw__ask{color:var(--col-soft);font-style:normal}
+/* the station row fades at its ends on a narrow screen, so a cut-off name reads as "more this way" */
+@media (max-width:1000px){ .rail__track{-webkit-mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent)} }
+/* a phone: the header is the name above ONE row of buttons (short labels), and the picture's own buttons are easy to tap */
+@media (max-width:540px){
+  .hdr__stats{flex-wrap:wrap;gap:5px}   /* one row as a rule; a long warning ("Sign in again" and Google's button) takes a second row rather than pushing buttons off the screen */
+  .hdr__stats .hbtn{padding:5px 8px;font-size:12px;min-height:32px}
+  .hdr__stats .hbtn__short{font-size:14px}
+  #btnHelp{width:32px;height:32px}
+  .stat{padding:3px 8px 3px 4px}
+  .cellv__mode,.memv__btn{min-height:34px}
+  .vbar{gap:6px}
+}
+/* a question on a cell drawing: the drawing at a readable size, centred, its stage as wide as the drawing */
+.hs__stage--fig{max-width:min(100%,400px);margin-left:auto;margin-right:auto;background:var(--col-card)}
+.hs__stage--fig svg{background:transparent}
+.tip::after,.tip::before{display:none}
+.tip:hover::after,.tip:hover::before,.tip:focus-visible::after,.tip:focus-visible::before,.tip.is-open::after,.tip.is-open::before{display:block}
+@media (prefers-reduced-motion: reduce){ .xcard__a{transition:none} }
+
+
+/* the inks of this lab (js/terms.js) */
+.t--struct{color:var(--k-struct)} .t--proc{color:var(--k-proc)} .t--subst{color:var(--k-subst)}
+.chip--struct{background:var(--k-struct);color:var(--on-ink)} .chip--proc{background:var(--k-proc);color:var(--on-ink)}
+.chip--subst{background:var(--k-subst);color:var(--on-ink)}
+
+/* ---------- phone and upright tablet: the picture as a strip above the notes ---------- */
+@media (max-width:1000px) and (min-height:561px){
+  /* pinned above the notes (the Cells Lab's rule, 8 Oct 2026), so the picture stays beside the words about it */
+  .platecol{position:sticky;top:0;z-index:4;height:min(42vh,380px);box-shadow:0 2px 10px var(--c176)}
+  .platecol.is-folded{height:auto}
+  .platecol.is-folded .viewhost,.platecol.is-folded .said{display:none}
+  /* the town, the defences and the photographs are working pictures: they scroll with the page at full width */
+  .platecol[data-kind="figure"],.platecol[data-kind="bodycell"],.platecol[data-kind="uses"],.platecol[data-kind="equation"],.platecol[data-kind="routes"],.platecol[data-kind="flasks"],.platecol[data-kind="yeastbench"],.platecol[data-kind="anaerobic"],.platecol[data-kind="debtbody"],.platecol[data-kind="venn"],.platecol[data-kind="places"],.platecol[data-kind="race"],.platecol[data-kind="solvent"],.platecol[data-kind="osmo"],.platecol[data-kind="tubing"],.platecol[data-kind="twocells"],.platecol[data-kind="carrierv"],.platecol[data-kind="roothair"],.platecol[data-kind="compare"]{position:relative;height:auto;box-shadow:none}
+  .platecol .memv{padding-bottom:4px}
+
+}
+/* the working pictures on a phone, upright or on its side: the column is as tall as the picture, its counters and its key, so nothing is cut or pushed under the buttons */
+@media (max-width:1000px){
+  .stage{grid-template-rows:max-content minmax(0,1fr)}
+  .platecol[data-kind="figure"],.platecol[data-kind="bodycell"],.platecol[data-kind="uses"],.platecol[data-kind="equation"],.platecol[data-kind="routes"],.platecol[data-kind="flasks"],.platecol[data-kind="yeastbench"],.platecol[data-kind="anaerobic"],.platecol[data-kind="debtbody"],.platecol[data-kind="venn"],.platecol[data-kind="places"],.platecol[data-kind="race"],.platecol[data-kind="solvent"],.platecol[data-kind="osmo"],.platecol[data-kind="tubing"],.platecol[data-kind="twocells"],.platecol[data-kind="carrierv"],.platecol[data-kind="roothair"],.platecol[data-kind="compare"]{height:auto}
+  .platecol[data-kind="figure"] > .viewhost,.platecol[data-kind="bodycell"] > .viewhost,.platecol[data-kind="uses"] > .viewhost,.platecol[data-kind="equation"] > .viewhost,.platecol[data-kind="routes"] > .viewhost,.platecol[data-kind="flasks"] > .viewhost,.platecol[data-kind="yeastbench"] > .viewhost,.platecol[data-kind="anaerobic"] > .viewhost,.platecol[data-kind="debtbody"] > .viewhost,.platecol[data-kind="venn"] > .viewhost,.platecol[data-kind="places"] > .viewhost,.platecol[data-kind="race"] > .viewhost,.platecol[data-kind="solvent"] > .viewhost,.platecol[data-kind="osmo"] > .viewhost,.platecol[data-kind="tubing"] > .viewhost,.platecol[data-kind="twocells"] > .viewhost,.platecol[data-kind="carrierv"] > .viewhost,.platecol[data-kind="roothair"] > .viewhost,.platecol[data-kind="compare"] > .viewhost,.platecol[data-kind="figure"] .memv,.platecol[data-kind="bodycell"],.platecol[data-kind="uses"],.platecol[data-kind="equation"],.platecol[data-kind="routes"],.platecol[data-kind="flasks"],.platecol[data-kind="yeastbench"],.platecol[data-kind="anaerobic"],.platecol[data-kind="debtbody"],.platecol[data-kind="venn"] .memv,.platecol[data-kind="places"] .memv,.platecol[data-kind="race"] .memv,.platecol[data-kind="solvent"] .memv,.platecol[data-kind="osmo"] .memv,.platecol[data-kind="tubing"] .memv,.platecol[data-kind="twocells"] .memv,.platecol[data-kind="carrierv"] .memv,.platecol[data-kind="roothair"] .memv,.platecol[data-kind="compare"] .memv{flex:none}
+}
+
+/* "Check yourself": a yellow highlighter under red-brown words, the same in both versions (a highlighter does not
+   change in the dark); the box keeps the theme's own ground */
+:root{ --gold-ink:#8A2A1E; --gold-mark:#FFE36B; }
+.golden__h,.exam-alert__h{color:var(--gold-ink);background:linear-gradient(180deg,transparent 14%,var(--gold-mark) 14%,var(--gold-mark) 92%,transparent 92%)}
+.golden p + p{margin-top:8px}
+
+/* ---------- the shared look of a picture's own controls ---------- */
+.cellv__mode{font:inherit;font-size:13px;font-weight:600;padding:6px 12px;border-radius:var(--r-pill);cursor:pointer;
+  border:1.5px solid var(--col-line);background:var(--col-card);color:var(--col-ink)}
+.cellv__mode[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-tint);color:var(--accent)}
+.cellv__mode:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vbtn[disabled]{opacity:.45;cursor:default}
+
+/* ---------- stations 5–7: one cell, several ways of seeing it ---------- */
+.cellv{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px 8px 8px}
+.cellv__stage{flex:1;min-height:0;display:flex}
+.cellv__svg{flex:1;min-height:0;width:100%;height:100%;display:block}
+.cellv__veil{fill:var(--on-photo-veil);opacity:0;transition:opacity .3s ease;pointer-events:none}
+.cellv__veil.is-on{opacity:1}
+.cellv__note{margin:6px 8px 0;font-size:13.5px;font-weight:600;color:var(--amber);text-align:center}
+.cellv__note[hidden]{display:none}
+
+/* "Put in order": the step numbers are neutral until the answer is checked (they were the red of a wrong answer) */
+.oitem__n{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.order.is-ok .oitem__n{background:var(--accent-2);color:var(--c3);border-color:transparent}
+.order.is-no .oitem__n{background:var(--red);color:var(--c3);border-color:transparent}
+.oitem__grip{color:var(--grey)}
+/* every instruction under a question in one style (the match-up's was an amber callout) */
+.act p.hinttext{display:block;background:none;border:0;border-radius:0;padding:0;margin:2px 0 8px;font-size:12.5px;color:var(--grey)}
+/* a gap inside a sentence is as tall as a line of text, so the sentence still reads as one */
+.cloze{line-height:2.05}
+.cloze .gap{line-height:1.3}
+/* four groups to sort into: two by two, never three and one */
+.bins:has(> .bin:nth-child(4):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}
+/* one ring for every picture, photograph or drawing: white with a dark edge inside and out, so it reads on any ground */
+.hs__pt:not([aria-pressed="true"]),.hs__stage svg ~ .hs__pt:not([aria-pressed="true"]){border:2px solid rgba(255,255,255,.95);background:rgba(255,255,255,.1);
+  box-shadow:0 0 0 1.5px rgba(10,20,28,.78),inset 0 0 0 1px rgba(10,20,28,.5)}
+.hs__pt:not([aria-pressed="true"]):hover{background:rgba(255,255,255,.35)}
+/* no word left alone on the last line of a paragraph */
+p,li,dd,figcaption{text-wrap:pretty}
+/* a cell picture's numbered pins and their key (when words in the margins would squeeze the picture) */
+.lb__pin{fill:var(--col-card);stroke:var(--col-ink);stroke-width:1.3px;vector-effect:non-scaling-stroke}
+.lb__pinn{fill:var(--col-ink);font-family:var(--font);font-weight:700}
+.lb.is-lit .lb__pin{fill:var(--accent);stroke:var(--accent)}
+.lb.is-lit .lb__pinn{fill:var(--on-ink)}
+.lb:hover .lb__pin,.lb:focus-visible .lb__pin{stroke:var(--accent)}
+.lb--key .lb__txt{stroke:none}
+
+/* a link out of the lab reads as a button, not as one more badge beside it */
+.later__out{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.later__out:hover{background:var(--accent-tint);filter:none}
+/* a tall photograph in a question is capped in height, so the question, the picture and "Check answer" fit on one
+   screen; the stage shrinks to the picture, so every ring stays on its part */
+.hs__stage:has(> img){width:fit-content;max-width:100%;margin-left:auto;margin-right:auto}
+.hs__stage > img{width:auto;max-width:100%;max-height:min(520px,62vh)}
+/* a heading over a picture (two photographs side by side) */
+.cellv__head{fill:var(--col-ink);font-family:var(--font);font-weight:700;paint-order:stroke;stroke:var(--col-bg);stroke-width:3px;stroke-linejoin:round}
+
+
+/* a phone: the numbered names of an animation, under the drawing */
+.pinkey{list-style:none;margin:6px 4px 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 12px;font-size:13.5px}
+.pinkey[hidden]{display:none}
+.pinkey b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink);font-size:11.5px;margin-right:4px}
+/* (copied from the Inheritance Lab, 8 Nov 2026) a step's words in parts, each marked with its level (Daniel, 8 Nov 2026: "exactly what is IGCSE and what is IB and what
+   is beyond … It needs to be very, very clear"): IGCSE in the lab's green, IB in the IB blue, beyond both in grey italics,
+   each a filled tint (memory level-colours-never-blank); the key to them, once, above the steps */
+.sp__lv{display:block;margin-top:5px;padding:4px 9px 5px;border-radius:7px;border-left:3px solid var(--accent);background:var(--accent-tint)}
+.sp__lv:first-child{margin-top:0}
+.sp__lvt{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:var(--r-pill);margin-right:3px;vertical-align:1px;background:#0F6B57;color:#FFFFFF}
+.sp__lv .sp__lvt{background:#0F6B57;color:#FFFFFF}   /* inside a step's words too, where bold text takes the ink colour */
+.sp__lv--ib,.sp__lv--ibhl{background:var(--ext-tint);border-left-color:var(--ext)}
+.sp__lv--ib .sp__lvt,.sp__lv--ibhl .sp__lvt{background:var(--ext);color:var(--ext-on)}
+.sp__lv--bey{background:var(--ext-tint);border-left-color:var(--ext)}
+.sp__lv--bey .sp__lvt{background:var(--ext);color:var(--ext-on);font-style:italic}
+.sp__legend{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;font-size:12.5px;line-height:1.35}
+.sp__legend .sp__lv{display:inline-block;margin:0;padding:3px 8px}
+/* a step with no IGCSE line: its level on its button (w-common.js onlyLv) */
+.sp__only{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:0 6px;border-radius:var(--r-pill);vertical-align:1px;border:0;margin-left:2px}
+.sp__only.sp__lv--ib,.sp__only.sp__lv--ibhl{background:var(--ext);color:var(--ext-on)}
+.sp__only.sp__lv--bey{background:var(--ext);color:var(--ext-on);font-style:italic}
+.sp__step--ib .sp__stepb,.sp__step--ibhl .sp__stepb{background:var(--ext-tint)}
+.sp__step--bey .sp__stepb{background:var(--ext-tint)}
+.figkey{list-style:none;margin:6px 10px 2px;padding:0;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13.5px;color:var(--col-ink)}
+.figkey[hidden]{display:none}
+.figkey li{display:inline-flex;align-items:center;gap:7px}
+.figkey__sw{flex:none;width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.25)}
+.anikey{margin:8px 4px 0;font-size:13px;gap:6px 18px;align-content:flex-start}
+.anikey li{gap:6px} .anikey li[hidden]{display:none}
+.anikey__sw{flex:none;width:28px;height:14px;overflow:visible}
+
+/* ---------- this lab's moving pictures: a canvas of particles under an svg of names (js/mem-stage.js) ---------- */
+.sci{font-style:italic}
+.mm__screen{position:relative;min-width:0;min-height:0;flex:1}
+.mm__cv{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.mm__screen > svg{position:relative;display:block;width:100%;height:100%}
+.mf__bg{fill:transparent}
+.mf__fig{margin:0}
+.mf__fig .mm__screen{flex:none}
+.mf__svg{display:block;width:100%;height:auto}
+.mm__screen > svg.mf__svg{height:auto}
+.mf__read{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.mf__pill,.memv__pill{font-size:12.5px;border-radius:var(--r-pill);padding:3px 10px;border:1px solid var(--edge);background:var(--card-2);color:var(--ink)}
+.mf__pill b,.memv__pill b{font-weight:600}
+.mf__pill i,.memv__pill i{font-style:normal;font-weight:700}
+.mf__pill.is-ok,.memv__pill.is-ok{border-color:var(--ok);color:var(--ok)}
+.mf__pill.is-warn,.memv__pill.is-warn{border-color:var(--amber);color:var(--amber)}
+.mf__pill.is-bad,.memv__pill.is-bad{border-color:var(--bad);color:var(--bad)}
+/* a station's left picture: its buttons, the picture, its read-outs */
+/* the number of the station you are in: a fainter disc, so its white number stays readable on the accent */
+.rstep[aria-current="true"] .rstep__n{background:rgba(255,255,255,.12)}
+.memv{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:8px 10px}
+/* the counters keep their height, so the picture never jumps when one of them wraps to a second row */
+.memv__read{flex:none;min-height:60px;align-content:flex-start}
+@media (min-width:1181px){ .memv__read--short{min-height:30px} }
+.memv__bar{padding:0;justify-content:center}
+.memv__bar[hidden]{display:none}
+.memv__btn{font:inherit;font-size:13px;font-weight:600;padding:6px 12px;border-radius:var(--r-pill);cursor:pointer;
+  border:1.5px solid var(--col-line);background:var(--col-card);color:var(--col-ink)}
+.memv__btn:hover{border-color:var(--accent)}
+.memv__btn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-tint);color:var(--accent)}
+.memv__btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.memv__btn[disabled]{opacity:.5;cursor:default}
+.memv__fig{flex:none;min-height:0;margin:0;display:flex;width:100%}
+.memv__read{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+/* a sample of each particle in an animation's key, on the dark ground of the pictures */
+.anikey__sw{background:#10263A;border-radius:4px}
+/* the key of a station's left picture, under it; an icon in a counter says what is counted */
+.memv__key{flex:none;margin:2px 4px 0;justify-content:center;align-content:center}
+.memv__pill .anikey__sw,.mf__pill .anikey__sw{display:inline-block;width:22px;height:11px;vertical-align:-1px}
+.memv__vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* the real film is square: on a wide card it stands beside its caption, so the sentence, the film and the caption
+   are seen together on a laptop, with no black bars (22 Nov 2026) */
+@media (min-width:600px) and (max-width:1000px),(min-width:1181px){
+  .exam-list li.xcard .media--video{display:grid;grid-template-columns:minmax(0,55%) minmax(0,1fr);background:var(--card)}
+  .exam-list li.xcard .media--video .media__el{max-height:none;aspect-ratio:1/1;align-self:center}
+  .exam-list li.xcard .media--video .media__cap{border-top:0;border-left:1px solid var(--edge-2);align-content:center}
+}
+/* the plant that wilts (station 7) */
+.mf-plant__wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.mf-plant__cv{display:block;width:100%;max-width:440px;margin:0 auto;aspect-ratio:340/240}
+.mf-plant .memv__bar{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.mf-plant__note{text-align:center;min-height:2.6em}
+
+/* ---------- the Venn diagram (station 9, his L3 worksheet): press a statement, then the part where it belongs ---------- */
+.vennv{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 10px;overflow:auto}
+.vennv__board{position:relative;flex:none;width:100%;aspect-ratio:16/9;max-height:48vh;background:#0E1D2E;border-radius:16px;overflow:hidden}
+.vennv__zone{position:absolute;top:6%;height:88%;width:56%;border-radius:50%;cursor:pointer;font:inherit;color:#fff;padding:0;display:flex;align-items:flex-start;justify-content:center}
+.vennv__zone span{margin-top:3%;font-weight:700;font-size:14px;background:rgba(9,18,28,.72);padding:2px 10px;border-radius:var(--r-pill)}
+.vennv__zone--a{left:3%;background:rgba(255,193,92,.34);border:2px solid rgba(255,214,130,.9)}
+.vennv__zone--n{right:3%;background:rgba(255,92,150,.3);border:2px solid rgba(255,150,190,.9)}
+.vennv__zone--b{left:37%;width:26%;top:18%;height:64%;background:transparent;border:0;border-radius:40%;z-index:2}
+.vennv__zone--b span{margin-top:0}
+.vennv__zone:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+.vennv__in{position:absolute;display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;pointer-events:none;z-index:3;top:18%;height:76%}
+.vennv__in--a{left:6%;width:30%}.vennv__in--b{left:38%;width:24%;top:28%;height:60%}.vennv__in--n{right:6%;width:30%}
+.vennv__in .vennv__chip{font-size:11px;padding:1px 7px;background:rgba(9,18,28,.86);color:#fff;border-color:rgba(255,255,255,.3);line-height:1.25;white-space:normal;text-align:center}
+.vennv__say{margin:0;font-size:14px;font-weight:600;text-align:center;color:var(--ink)}
+.vennv__chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.vennv__chip{font:inherit;font-size:13px;padding:5px 11px;border-radius:var(--r-pill);border:1px solid var(--edge);background:var(--card);color:var(--ink);cursor:pointer}
+.vennv__chip.is-on{border-color:var(--accent);background:var(--accent-tint);color:var(--accent);font-weight:600}
+.vennv__chip.is-no{border-color:var(--bad);color:var(--bad)}
+.vennv__chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vennv__again{align-self:center}
+.memv--many .memv__bar{gap:5px}
+.memv--many .memv__btn{font-size:12px;padding:5px 9px}
+
+.rsv-note{margin:0;font-size:13px;text-align:center;color:var(--ink)}
+.rsv-note[hidden]{display:none}
