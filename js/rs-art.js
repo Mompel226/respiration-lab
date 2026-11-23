@@ -36,7 +36,7 @@
   /* win: the window of the body shown, in its own pixels; W, H: the picture */
   function Body(win, W, H) {
     var k = Math.min(W / win.w, H / win.h), ox = (W - win.w * k) / 2 - win.x0 * k, oy = (H - win.h * k) / 2 - win.y0 * k;
-    ['base', 'muscle', 'lungs', 'gut', 'liver', 'kidneys', 'blood', 'heart'].forEach(layer);
+    ['base', 'muscle', 'lungs', 'airways', 'pulmA', 'pulmV', 'gut', 'liver', 'kidneys', 'blood', 'heart'].forEach(layer);
     function put(c, im, a) {
       if (!im) return;
       if (a != null) c.globalAlpha = a;
@@ -56,6 +56,23 @@
         var q = [ox + px * k, oy + py * k];
         c.save(); c.translate(q[0], q[1]); c.scale(sx, sy); c.translate(-q[0], -q[1]); put(c, i, al); c.restore();
       },
+      /* the vessels the model does not have (the arms, and those of the liver), as tubes in the model's colours: red arteries, blue veins */
+      tubes: function (c, a) {
+        var al = a == null ? 1 : a;
+        Object.keys(EXTRA).forEach(function (n) {
+          var P = EXTRA[n], vein = /^vein|hepV|portal/.test(n), w = 4.3 * k;
+          function line() {
+            c.beginPath(); var q = [ox + P[0][0] * k, oy + P[0][1] * k]; c.moveTo(q[0], q[1]);
+            for (var i = 1; i < P.length - 1; i++) { var u = [ox + P[i][0] * k, oy + P[i][1] * k], v = [ox + P[i + 1][0] * k, oy + P[i + 1][1] * k]; c.quadraticCurveTo(u[0], u[1], (u[0] + v[0]) / 2, (u[1] + v[1]) / 2); }
+            var e = P[P.length - 1]; c.lineTo(ox + e[0] * k, oy + e[1] * k);
+          }
+          c.save(); c.globalAlpha = al; c.lineCap = 'round'; c.lineJoin = 'round';
+          line(); c.strokeStyle = 'rgba(10,18,28,.55)'; c.lineWidth = w + 1.6; c.stroke();
+          line(); c.strokeStyle = vein ? '#4F74C8' : '#D8473E'; c.lineWidth = w; c.stroke();
+          line(); c.strokeStyle = 'rgba(255,255,255,.26)'; c.lineWidth = Math.max(.8, w * .24); c.stroke();
+          c.restore();
+        });
+      },
       glow: function (c, n, rgb, a) {
         var t = tinted(n, rgb); if (!t || a <= .01) return;
         c.save(); c.globalCompositeOperation = 'lighter'; put(c, t, a); c.restore();
@@ -65,34 +82,40 @@
   function onBody(f) { listeners.push(f); }
 
   /* a route through the body: a list of points; at(u) is the point a fraction u along it */
-  function route(P) {
+  function route(P, marks) {
     var L = [0];
     for (var i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
     var T = L[L.length - 1];
-    return { P: P, len: T, at: function (u) {
+    return { P: P, len: T, marks: marks || {},
+      /* the fraction of the route nearest to a point (to enter a vessel where the molecule is) */
+      near: function (q, upTo) {
+        var best = 0, bd = 1e12, n = Math.ceil(T / 4), top = upTo == null ? 1 : upTo;
+        for (var k = 0; k <= n * top; k++) { var p = this.at(k / n), d = (p[0] - q[0]) * (p[0] - q[0]) + (p[1] - q[1]) * (p[1] - q[1]); if (d < bd) { bd = d; best = k / n; } }
+        return best;
+      },
+      at: function (u) {
       var w = clamp(u) * T;
       for (var j = 1; j < P.length; j++) if (w <= L[j]) { var q = (w - L[j - 1]) / (L[j] - L[j - 1] || 1); return [lerp(P[j - 1][0], P[j][0], q), lerp(P[j - 1][1], P[j][1], q)]; }
       return P[P.length - 1];
     } };
   }
-  /* the routes, in the body's own pixels, measured on the layers: the small intestine, the liver and the vena cava; the heart; the
-     lungs; the aorta and an artery of the arm (Topic 9). Only the vessels that are drawn are followed exactly. */
-  var AIR = [[522, 178], [490, 178], [456, 176], [426, 172]];          /* the air beside the face and into a nostril */
-  var ARM_R = [[636, 560], [642, 470], [600, 400], [540, 372], [470, 376]], ARM_L = [[208, 560], [204, 470], [240, 400], [300, 372], [372, 376]];
-  /* from the vena cava: the right side of the heart, a lung, the left side of the heart, the aorta and the artery of the liver */
-  var HEART_LUNG = [[404, 410], [412, 486], [360, 480], [332, 468], [392, 462], [446, 462]], TO_LIVER = [[440, 520], [432, 590], [414, 622], [382, 640]];
+  /* ROUTES: written by tools/trace-routes.py, along the middle of the model's vessels and airways. Do not edit by hand. */
+  var EXTRA = {"brachio":[[428,384],[418,378],[406,370]],"artL":[[327,362],[304,368],[280,382],[258,406],[240,438],[229,474],[224,512],[218,552],[210,592],[200,628]],"veinL":[[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400]],"artR":[[519,365],[540,370],[564,384],[586,408],[603,440],[613,476],[618,514],[624,554],[632,594],[642,630]],"veinR":[[650,628],[640,592],[631,552],[625,512],[620,472],[610,436],[593,402],[570,380],[544,372],[510,376],[470,382],[432,388],[402,400]],"hepA":[[431,652],[414,648],[396,642],[378,634]],"hepV":[[372,606],[384,590],[396,574],[402,562]],"portal":[[452,846],[446,806],[436,766],[422,726],[404,690],[386,660],[372,632]]};
   var R = {
-    glucose: route([[438, 860], [432, 780], [418, 712], [402, 640], [402, 560], [414, 512], [356, 474], [336, 462], [410, 468], [446, 452], [440, 404], [372, 366], [300, 372], [246, 430], [222, 520], [208, 610]]),
-    oxygen: route(AIR.concat([[424, 240], [426, 330], [392, 400], [342, 462], [410, 470], [446, 452], [440, 404], [372, 366], [300, 372], [246, 430], [222, 520], [208, 610]])),
-    co2: route([[202, 610], [214, 520], [238, 436], [300, 390], [372, 384], [402, 430], [414, 490], [360, 482], [336, 470], [392, 410], [426, 330], [424, 240], [426, 172], [456, 176], [490, 178], [522, 178]]),
-    lacticR: route(ARM_R.concat(HEART_LUNG, TO_LIVER)),
-    lacticL: route(ARM_L.concat(HEART_LUNG, TO_LIVER)),
-    lungToLiver: route([[342, 466], [392, 462], [446, 462]].concat(TO_LIVER)),
-    sweat: route([[202, 600], [176, 590], [136, 584], [96, 590]]),
-    breath: route(AIR.concat([[424, 240], [426, 330], [392, 400], [346, 462]])),
-    breathOut: route([[346, 462], [392, 400], [426, 330], [424, 240], [426, 172], [456, 176], [490, 178], [522, 178]]),
-    urine: route([[208, 610], [240, 440], [350, 410], [414, 490], [432, 610], [462, 668], [486, 692]])
+    glucose: route([[452,846],[446,806],[436,766],[422,726],[404,690],[386,660],[372,632],[372,612],[372,606],[384,590],[396,574],[402,562],[402,540],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[428,384],[418,378],[406,370],[397,355],[377,348],[363,350],[327,362],[304,368],[280,382],[258,406],[240,438],[229,474],[224,512],[218,552],[210,592],[200,628]]),
+    oxygen: route([[426,172],[423,204],[421,248],[421,292],[419,300],[418,407],[397,432],[393,447],[383,465],[368,483],[365,497],[355,507],[333,520],[327,532],[296,570],[285,575],[281,575],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[428,384],[418,378],[406,370],[397,355],[377,348],[363,350],[327,362],[304,368],[280,382],[258,406],[240,438],[229,474],[224,512],[218,552],[210,592],[200,628]], {"lung":0.3553}),
+    co2: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[281,575],[285,575],[296,570],[327,532],[333,520],[355,507],[365,497],[368,483],[383,465],[393,447],[397,432],[418,407],[419,300],[421,292],[421,248],[423,204],[426,172]], {"lung":0.6524}),
+    lacticR: route([[650,628],[640,592],[631,552],[625,512],[620,472],[610,436],[593,402],[570,380],[544,372],[510,376],[470,382],[432,388],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
+    lacticL: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
+    lungToLiver: route([[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
+    sweat: route([[156,598],[136,592],[116,588],[96,590]]),
+    lungToLiverR: route([[563,531],[530,528],[497,502],[489,500],[476,491],[458,488],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
+    breath: route([[426,172],[423,204],[421,248],[421,292],[419,300],[418,407],[397,432],[393,447],[383,465],[368,483],[365,497],[355,507],[333,520],[327,532],[296,570],[285,575],[281,575]]),
+    breathR: route([[426,172],[423,204],[421,248],[421,292],[419,302],[419,402],[420,408],[450,441],[473,459],[487,478],[496,496],[520,519],[525,521],[557,522]]),
+    breathOut: route([[281,575],[285,575],[296,570],[327,532],[333,520],[355,507],[365,497],[368,483],[383,465],[393,447],[397,432],[418,407],[419,300],[421,292],[421,248],[423,204],[426,172]]),
+    urine: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,486],[433,538],[430,700],[472,700],[478,702]])
   };
+  /* END ROUTES */
 
   /* ======================================================================= small things */
   function spark(c, x, y, s, a) {
@@ -130,6 +153,15 @@
     c.lineWidth = r * .27; c.strokeStyle = D.C.sugar; c.stroke();
     if (withO) D.ball(c, -r / 2, -r * .866, r * .21, D.C.o);
     c.restore();
+  }
+  /* a red blood cell. With `o2` (the size of the molecule) it carries oxygen, combined with its haemoglobin */
+  function rbc(c, x, y, r, rot, a, o2) {
+    if (a != null && a <= .01) return;
+    c.save(); c.translate(x, y); c.rotate(rot || 0); if (a != null) c.globalAlpha = a;
+    var g = c.createRadialGradient(0, 0, r * .12, 0, 0, r); g.addColorStop(0, '#A8293A'); g.addColorStop(.62, '#E0505B'); g.addColorStop(1, '#8C1F2E');
+    c.fillStyle = g; c.beginPath(); c.ellipse(0, 0, r, r * .76, 0, 0, TAU); c.fill();
+    c.strokeStyle = 'rgba(255,214,214,.5)'; c.lineWidth = Math.max(.7, r * .07); c.stroke(); c.restore();
+    if (o2) D.mol(c, 'oxygen', x, y, rot || 0, o2, a == null ? 1 : a);
   }
   /* a soft ring round a thing in the picture: where the eye should go */
   function ringAt(c, x, y, r, a, col) {
@@ -210,10 +242,13 @@
       c.restore();
     });
     c.restore();
-    /* the stopper */
-    D.rr(c, x - w * .23, y, w * .46, 40, 7);
-    var sp = c.createLinearGradient(0, y, 0, y + 40); sp.addColorStop(0, '#E5C698'); sp.addColorStop(1, '#AC8655');
-    c.fillStyle = sp; c.fill(); c.strokeStyle = 'rgba(70,46,20,.8)'; c.lineWidth = 1; c.stroke();
+    /* a plug of cotton wool: it holds the thermometer and lets gases pass, so the seeds keep their oxygen */
+    var plugW = w / 2 - th - 13;                                       /* it fills the mouth of the flask, from wall to wall */
+    for (var t = 0; t < 38; t++) {
+      var tx = x - plugW + ((t * 37) % 100) / 100 * 2 * plugW, ty = y + 26 + ((t * 53) % 100) / 100 * 30, tr = 7 + (t * 7) % 5;
+      var tg = c.createRadialGradient(tx - tr * .3, ty - tr * .35, 1, tx, ty, tr); tg.addColorStop(0, '#FFFFFF'); tg.addColorStop(.7, '#E9EDF1'); tg.addColorStop(1, '#BFC8D1');
+      c.fillStyle = tg; c.beginPath(); c.arc(tx, ty, tr, 0, TAU); c.fill();
+    }
     c.restore();
   }
   /* a thermometer, without numbers: k 0 … 1 is how high its liquid stands; it stands in the flask, through the stopper */
@@ -250,5 +285,5 @@
     return lvl;
   }
 
-  global.RsArt = { Body: Body, onBody: onBody, layer: layer, R: R, route: route, spark: spark, enzyme: enzyme, half: half, ringAt: ringAt, fibre: fibre, flask: flask, thermometer: thermometer, tube: tube };
+  global.RsArt = { Body: Body, onBody: onBody, layer: layer, R: R, EXTRA: EXTRA, route: route, rbc: rbc, spark: spark, enzyme: enzyme, half: half, ringAt: ringAt, fibre: fibre, flask: flask, thermometer: thermometer, tube: tube };
 })(window);

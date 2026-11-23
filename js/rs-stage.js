@@ -21,12 +21,13 @@
   /* The picture takes the whole width of its column, and its names stand in a band above it and a band below it, each
      joined to its part by one upright line that ends ON the part (Daniel, 5 Nov 2026: "put it at the top if you need it").
      Upright lines at different places cannot cross. On a phone each name is a numbered pin, with the words in a key. */
-  function frame(svg, bg, W, H, D, narrow, px) {
-    var f = px * (W + 4) / D, band = narrow ? f * 1.7 : f * 2.95 + 3;
+  function frame(svg, bg, W, H, D, narrow, px, inPic) {
+    /* inPic: a rich picture has the whole column, and its names stand on its own dark edges, not in a margin that shrinks it */
+    var f = px * (W + 4) / D, band = inPic ? 0 : narrow ? f * 1.7 : f * 2.95 + 3;
     var vb = { x: -2, y: -band, w: W + 4, h: H + 2 * band, bw: W, bh: H };
     svg.setAttribute('viewBox', K.n1(vb.x) + ' ' + K.n1(vb.y) + ' ' + K.n1(vb.w) + ' ' + K.n1(vb.h));
     bg.setAttribute('x', vb.x); bg.setAttribute('y', vb.y); bg.setAttribute('width', vb.w); bg.setAttribute('height', vb.h);
-    return { f: f, vb: vb, narrow: narrow, to: function (x, y) { return [x, y]; } };
+    return { f: f, vb: vb, narrow: narrow, inPic: !!inPic, to: function (x, y) { return [x, y]; } };
   }
   /* a long name in a band breaks at its meaning ("partially permeable" over "membrane"), never in the middle of either part.
      Only the drawing is tied: the scene's words stay plain, so the reading time still counts every word */
@@ -41,6 +42,7 @@
   }
   function putNames(lay, items, narrow, key) {
     var vb = lay.vb, o = { items: items, left: -2, right: vb.bw + 2, font: lay.f, top: vb.y + 4, bottom: vb.y + vb.h - 4, bandT: -3, bandB: vb.bh + 3, bandL: 2, bandR: vb.bw - 2 };
+    if (lay.inPic) { o.top = 5; o.bottom = vb.bh - 5; o.bandT = lay.f * 2.75 + 7; o.bandB = vb.bh - lay.f * 2.75 - 7; o.left = 2; o.right = vb.bw - 2; }
     if (narrow) {
       var P = L.pinLabels(Object.assign({}, o, { gap: 4 }));
       if (key) { key.hidden = !P.order.length; key.innerHTML = P.order.map(function (q) { return '<li><b>' + q.n + '</b> ' + L.esc(q.text) + '</li>'; }).join(''); }
@@ -121,9 +123,20 @@
       sp = L.stepper({ steps: K.readerSteps(cfg.steps, TL.R), end: TL.end, render: draw, flow: TL.flow, stills: K.stillsOf(cfg.steps, TL) });
       var box = K.mount(S, sp, 'mf', cfg.key ? [{ key: cfg.key }].concat(cfg.notes || []) : (cfg.notes || []), function (Dw, nar) {
         narrow = nar;
-        lay = frame(svg, bg, scene.W, scene.H, Dw, nar, 14.5);
+        /* a film with a body: in the picture's column of a laptop it takes all the room, with its names and its key on it */
+        var colEl = scene.fit && S.fig.closest ? S.fig.closest('.platecol') : null, room = 0;
+        if (colEl && !nar && !(global.matchMedia && global.matchMedia('(max-width: 1000px)').matches)) room = colEl.getBoundingClientRect().bottom - S.fig.getBoundingClientRect().top - 8;
+        var fill = room >= 300;
+        S.fig.classList.toggle('mf__fig--fill', fill);
+        if (scene.fit) scene.fit(fill ? Dw / room : 0);
+        lay = frame(svg, bg, scene.W, scene.H, Dw, nar, 14.5, fill);
         if (scene.keyNow && sp) requestAnimationFrame(function () { keyAt(clock(sp.time())); });
       });
+      if (cfg.credit) {
+        var about = document.createElement('details'); about.className = 'pinfo';
+        about.innerHTML = '<summary aria-label="About this picture and where it comes from"><span aria-hidden="true"></span></summary><p class="pinfo__t"><span class="pinfo__credit">' + cfg.credit + '</span></p>';
+        stage.screen.appendChild(about);
+      }
       if (global.RsArt) global.RsArt.onBody(function () { if (lay && S.box.isConnected) canvasOnly(clock(sp.time())); });
       /* the shared step list shows a step's whole key: this film's key then follows the moment again */
       if (scene.keyNow) { var onStep0 = sp.onStep; sp.onStep = function (k) { if (onStep0) onStep0(k); keyAt(clock(sp.time())); }; requestAnimationFrame(function () { keyAt(clock(sp.time())); }); }
@@ -138,7 +151,7 @@
          key?: { all: [[kind, name], …], sets: [[name, …], …] (what each state shows), now() (the names shown now) } }
      returns { el, setButtons(id), repaint(), labels(), stage: ... } for a view to wrap in Views.add */
   function RsView(o) {
-    var root = h('div', 'memv ' + (o.cls || ''));
+    var root = h('div', 'memv ' + (o.fill ? 'memv--fill ' : '') + (o.cls || ''));
     var bar = h('div', 'vbar memv__bar');
     bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', o.barLabel || 'What to show');
     var btn = {};
@@ -192,13 +205,26 @@
     }
     function layout() {
       var rw = fig.getBoundingClientRect().width, H0 = root.clientHeight; if (!rw || !H0) return false;
+      /* a picture with the whole column (a laptop) carries its key and its names on it; on a phone the key stands under the picture */
+      var whole = !!o.fill && rw >= 440 && !(global.matchMedia && global.matchMedia('(max-width: 1000px)').matches);
+      root.classList.toggle('is-inpic', whole);
+      if (keyEl && o.fill && keyEl.parentNode !== (whole ? fig : root)) { if (whole) fig.appendChild(keyEl); else root.insertBefore(keyEl, o.read ? read : pk); keyW = 0; }
       if (keyEl && Math.round(rw) !== keyW) { keyW = Math.round(rw); sizeKey(); }
       /* the counters and the key can take another row when the words change: the picture then makes room for them */
       var key = Math.round(rw) + 'x' + Math.round(H0) + 'x' + (o.read ? read.offsetHeight : 0) + 'x' + (pk.hidden ? 0 : pk.offsetHeight) + 'x' + (keyEl ? keyEl.offsetHeight : 0);
       if (key === lastKey && lay) return true;
       lastKey = key; narrow = rw < 440;
       var cs = global.getComputedStyle(root), pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom), gap = parseFloat(cs.rowGap) || 6;
-      var room = H0 - pad - (bar.hidden ? 0 : bar.offsetHeight + gap) - (keyEl ? keyEl.offsetHeight + gap : 0) - (o.read ? read.offsetHeight + gap : 0) - (pk.hidden ? 0 : pk.offsetHeight + gap);
+      var keyH = keyEl && !whole ? keyEl.offsetHeight + gap : 0;
+      var room = H0 - pad - (bar.hidden ? 0 : bar.offsetHeight + gap) - keyH - (o.read ? read.offsetHeight + gap : 0) - (pk.hidden ? 0 : pk.offsetHeight + gap);
+      /* the whole column on a laptop: the picture takes its shape from the room there is */
+      if (whole && scene.fit && room >= 240) {
+        scene.fit(rw / room);
+        lay = frame(svg, bg, scene.W, scene.H, rw, false, 14, true);
+        fig.style.height = Math.round(room) + 'px';
+        return true;
+      }
+      if (o.fill && scene.fit) scene.fit(0);
       lay = frame(svg, bg, scene.W, scene.H, rw, narrow, 14);
       var want = rw * lay.vb.h / lay.vb.w;
       /* on a phone the picture scrolls with the page, whatever its height; in a column it fits the room there is */
@@ -247,7 +273,7 @@
     var ro = global.ResizeObserver ? new ResizeObserver(function () { if (root.isConnected) full(); }) : null;
     if (ro) ro.observe(root);
     return {
-      el: root, pill: pill, names: names, paint: paint, full: full,
+      el: root, fig: fig, pill: pill, names: names, paint: paint, full: full,
       press: function (id) { Object.keys(btn).forEach(function (k) { btn[k].setAttribute('aria-pressed', k === id ? 'true' : 'false'); }); },
       button: function (id) { return btn[id]; },
       start: function () { running = true; tsLast = null; if (!raf) raf = requestAnimationFrame(loop); full(); },

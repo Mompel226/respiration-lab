@@ -391,7 +391,7 @@ p,li,dd,figcaption{text-wrap:pretty}
 .vennv__zone--b span{margin-top:0}
 .vennv__zone:focus-visible{outline:3px solid #fff;outline-offset:-3px}
 .vennv__in{position:absolute;display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;pointer-events:none;z-index:3;top:18%;height:76%}
-.vennv__in--a{left:6%;width:30%}.vennv__in--b{left:38%;width:24%;top:28%;height:60%}.vennv__in--n{right:6%;width:30%}
+.vennv__in--a{left:6%;width:30%}.vennv__in--b{left:41%;width:18%;top:28%;height:60%}.vennv__in--n{right:6%;width:30%}
 .vennv__in .vennv__chip{font-size:11px;padding:1px 7px;background:rgba(9,18,28,.86);color:#fff;border-color:rgba(255,255,255,.3);line-height:1.25;white-space:normal;text-align:center}
 .vennv__say{margin:0;font-size:14px;font-weight:600;text-align:center;color:var(--ink)}
 .vennv__chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
@@ -405,3 +405,29 @@ p,li,dd,figcaption{text-wrap:pretty}
 
 .rsv-note{margin:0;font-size:13px;text-align:center;color:var(--ink)}
 .rsv-note[hidden]{display:none}
+
+/* ---------- a rich picture has the whole column on a laptop (docs/PICTURE-STANDARD.md, F): its caption and credit fold under a small i, its key and names lie on it ---------- */
+.memv--fill .memv__fig{position:relative}
+.memv--fill .memv__read{min-height:0}
+.mm__screen{position:relative}
+.memv__fig > .memv__key,.mf__fig--fill .anikey{position:absolute;z-index:3;right:42px;bottom:8px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:0!important;margin:0;padding:5px 9px;border-radius:8px;background:rgba(10,18,26,.76);color:#E8EEF4}
+.memv__fig > .memv__key li,.memv__fig > .memv__key span,.mf__fig--fill .anikey li,.mf__fig--fill .anikey span{color:#E8EEF4}
+.memv__fig > .memv__key:not(:has(li:not([hidden]))),.mf__fig--fill .anikey:not(:has(li:not([hidden]))){display:none}
+.memv.is-inpic{justify-content:flex-start;gap:5px;padding:6px 8px}
+.memv.is-inpic .lb__txt,.mf__fig--fill .lb__txt{fill:#EEF4FA;stroke:#0C1A28;stroke-width:4px;paint-order:stroke}
+.memv.is-inpic .lb__lead,.mf__fig--fill .lb__lead{stroke:#EEF4FA}
+.memv.is-inpic .lb__halo,.mf__fig--fill .lb__halo{stroke:rgba(10,20,30,.72)}
+@media (min-width:1001px){ .memv--tworows .memv__read{min-height:56px;align-content:center} }
+.pinfo{position:absolute;z-index:5;right:8px;bottom:8px;color:#EEF4FA}
+.pinfo summary{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(10,18,26,.8);border:1.5px solid rgba(255,255,255,.42);cursor:pointer;list-style:none}
+.pinfo summary::-webkit-details-marker{display:none}
+.pinfo summary span::before{content:'i';font:italic 700 15px/1 Georgia,'Times New Roman',serif}
+.pinfo[open] summary span::before{content:'\00D7';font:700 16px/1 var(--font)}
+.pinfo summary:hover{border-color:#8FD3F0}
+.pinfo summary:focus-visible{outline:2px solid #8FD3F0;outline-offset:2px}
+.pinfo__t{position:absolute;right:0;bottom:32px;width:min(330px,calc(100vw - 40px));margin:0;padding:9px 12px;border-radius:10px;background:rgba(10,18,26,.94);border:1px solid rgba(255,255,255,.2);text-align:left}
+.pinfo__say{display:block;font-size:13px;font-weight:600;line-height:1.35;color:#EEF4FA}
+.pinfo__credit{display:block;margin-top:3px;font-size:11.5px;line-height:1.35;color:#C4D2DE}
+/* the atoms' key stands in the picture's lower band, centred */
+.rsv-note.rsv-note--on{position:absolute;z-index:3;left:50%;bottom:3px;transform:translateX(-50%);margin:0;padding:0;white-space:nowrap;background:none;color:var(--col-ink);font-size:12.5px}
+.rsv-note--on[hidden]{display:none}

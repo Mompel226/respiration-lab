@@ -7,7 +7,9 @@
    - glucose never enters a mitochondrion: enzymes split it in the cytoplasm, and the two smaller molecules enter (IB HL C1.2.8, C1.2.11);
    - the counts are the equation's: 1 glucose, 6 oxygen, 6 carbon dioxide, 6 water; in yeast 2 alcohol and 2 carbon dioxide;
    - muscle makes no carbon dioxide in anaerobic respiration, and nothing anaerobic happens in a mitochondrion;
-   - lactic acid leaves the muscle in a vein and reaches the liver through the heart, a lung, the heart and the aorta;
+   - in the blood, oxygen is on the red blood cells (combined with haemoglobin); glucose, carbon dioxide and lactic acid are in the plasma;
+   - lactic acid leaves the muscle in a vein and reaches the liver through the heart, a lung, the heart and the aorta, inside the vessels (js/rs-art.js);
+   - the heart and the breathing never stand still, also while a step waits for the reader;
    - after exercise, the heart and the breathing stay fast until the oxygen debt has been removed.
    THE FENCE: no film counts, times or graphs anything about exercise or breathing (Breathing Rate Lab report, T11T12).
    ============================================================ */
@@ -36,23 +38,42 @@
   var AERO_M = [0, 5, 11, 15.5, 24, 30];
   L.add('aerofilm', Film({
     title: 'Aerobic respiration in a cell',
-    aria: 'One glucose molecule and six oxygen molecules enter a muscle cell. Two enzymes split the glucose in the cytoplasm. The two smaller molecules enter a mitochondrion, where enzymes release carbon dioxide from them and oxygen forms water, and energy is released. The carbon dioxide leaves in the blood, and the energy is used for contraction.',
+    aria: 'Red blood cells bring six oxygen molecules and the plasma brings one glucose molecule to a muscle cell. Two enzymes split the glucose in the cytoplasm. The two smaller molecules enter a mitochondrion, where enzymes release carbon dioxide from them and oxygen forms water, and energy is released. The carbon dioxide diffuses into the plasma, and the energy is used for contraction.',
     key: [['rbc', 'red blood cell'], ['glucose', 'glucose'], ['oxygen', 'oxygen'], ['enzymek', 'enzyme'], ['halfm', 'smaller molecule'], ['co2', 'carbon dioxide'], ['water', 'water'], ['spark', 'energy released']],
     M: AERO_M,
     steps: [
-      { t: 0, h: 'Glucose and oxygen enter the cell', p: [['ig', 'The blood brings **glucose** and **oxygen** to a muscle cell. Both **diffuse** through the cell membrane into the cytoplasm. The molecules are drawn much larger than they really are.']] },
+      { t: 0, h: 'Glucose and oxygen enter the cell', p: [['ig', '**Red blood cells** carry **oxygen** to a muscle cell, and the **plasma** carries **glucose**. Both **diffuse** through the cell membrane into the cytoplasm. The molecules are drawn much larger than they really are.']] },
       /* IB HL C1.2.8: glycolysis */
       { t: 5, h: 'Enzymes split the glucose', p: [['ig', '**Enzymes** in the cytoplasm begin to break down the glucose. They split one glucose molecule into two smaller molecules, and a little energy is released.'], ['ibhl', 'This step is **glycolysis**, and the two smaller molecules are **pyruvate** (C1.2.8).']] },
       /* IB HL C1.2.11 */
       { t: 11, h: 'Into a mitochondrion', p: [['ig', 'The two smaller molecules enter a **mitochondrion**. Glucose itself does not enter. Oxygen enters too.']] },
       /* IB HL C1.2.11, C1.2.12, C1.2.16 */
       { t: 15.5, h: 'Oxygen is used, and energy is released', p: [['ig', 'Enzymes in the mitochondrion break down the smaller molecules completely, and **carbon dioxide** is released. **Oxygen is used**, and **water** is formed. These reactions **release energy**.'], ['ibhl', 'Carbon dioxide is released in the link reaction and the Krebs cycle (C1.2.11, C1.2.12). Oxygen is the final electron acceptor, which forms water (C1.2.16).']] },
-      { t: 24, h: 'Carbon dioxide leaves', p: [['ig', 'Carbon dioxide **diffuses** out of the cell, and the blood carries it away. The cell uses the energy, here for **muscle contraction**. In total: **glucose + oxygen → carbon dioxide + water**.']] }
+      { t: 24, h: 'Carbon dioxide leaves', p: [['ig', 'Carbon dioxide **diffuses** out of the cell into the **plasma**, and the blood carries it away. The cell uses the energy, here for **muscle contraction**. In total: **glucose + oxygen → carbon dioxide + water**.']] }
     ],
     make: function () {
-      var W = 560, H = 330, amb = 0, MX = 352, MY = 136, ML = 292, MW = 150, u = 44, GX = 150, GY = 148;
-      var O2 = [[16, 42], [24, 112], [14, 190], [26, 248], [16, 300], [30, 76]];
-      var O2in = [[100, 36], [196, 44], [98, 250], [196, 240], [84, 112], [86, 186]], R0 = 1.7 * u * .35;
+      var W = 560, H = 330, amb = 0, last = 0, MX = 352, MY = 136, ML = 292, MW = 150, u = 44, GX = 150, GY = 148;
+      /* a capillary: its red blood cells pass in single file, with the plasma between them and the cell. What is dissolved in the plasma never lies on a red blood cell */
+      var BW = 92, LANE = [23, 23], PLASMA = 64, NC = 8, PER = H + 40, drift = [0, 0, 0, 0, 0, 0];
+      function cellAt(n, T) { return [LANE[n % 2], (((T * 22 + n * PER / NC) % PER) + PER) % PER - 20]; }
+      var O2in = [[124, 36], [214, 44], [122, 250], [214, 240], [112, 112], [112, 186]], R0 = 1.7 * u * .35;
+      function o2Off(i) { return .2 + i * .24; }
+      /* each oxygen rides the red blood cell that is level with where it will enter the cell */
+      var ON = (function () {
+        var used = {}, o = [];
+        for (var i = 0; i < 6; i++) {
+          var best = 0, bd = 1e9;
+          for (var n = 0; n < NC; n++) { if (used[n]) continue; var y = cellAt(n, o2Off(i))[1], d = Math.abs(y - O2in[i][1]) + (y < 14 || y > H - 14 ? 400 : 0); if (d < bd) { bd = d; best = n; } }
+          used[best] = true; o.push(best);
+        }
+        return o;
+      })();
+      function o2At(i, t) {
+        var off = o2Off(i);
+        if (t < off) return cellAt(ON[i], t + amb);
+        if (t < 3.6 + i * .1) return along(cellAt(ON[i], off + amb), O2in[i], seg(t, off, 3.6 + i * .1));
+        return O2in[i];
+      }
       var O2m = [[296, 84], [344, 78], [392, 80], [436, 92], [452, 142], [410, 190]];
       var CO2m = [[378, 112], [414, 118], [450, 126], [374, 166], [410, 166], [446, 160]];
       var REL = [17, 17.4, 17.9, 18.3, 18.8, 19.2];                   /* each carbon dioxide leaves its smaller molecule */
@@ -62,33 +83,29 @@
         var from = j % 2 ? [292, 176] : [292, 112], p = along(from, CO2m[j], seg(t, REL[j], REL[j] + .9));
         if (t < 24) return p;
         var a0 = 24 + j * .24, arr = a0 + 2.6, y = 44 + j * 44;
-        if (t < arr) return along(CO2m[j], [32, y], seg(t, a0, arr));
-        return [32 + wob(t, j, 2), y + (t - arr) * 22];
+        if (t < arr) return along(CO2m[j], [PLASMA, y], seg(t, a0, arr));
+        return [PLASMA + wob(t + drift[j], j, 2), y + (t - arr + drift[j]) * 22];   /* in the plasma, beside the red blood cells */
       }
       function draw(c, t) {
         screen(c, W, H, '#142A40', '#0E1D2E', function () {
           /* the capillary, with the blood moving along it */
-          var bl = c.createLinearGradient(0, 0, 58, 0); bl.addColorStop(0, '#6A2230'); bl.addColorStop(1, '#4C1824');
-          c.fillStyle = bl; c.fillRect(0, 0, 58, H);
-          for (var rb = 0; rb < 7; rb++) {
-            var ry = ((t + amb) * 22 + rb * 54) % (H + 40) - 20, rx = 18 + (rb % 3) * 11;
-            c.save(); c.translate(rx, ry); c.rotate(rb * .9);
-            var rg = c.createRadialGradient(0, 0, 2, 0, 0, 13); rg.addColorStop(0, '#A8293A'); rg.addColorStop(.6, '#D8434F'); rg.addColorStop(1, '#8C1F2E');
-            c.fillStyle = rg; c.beginPath(); c.ellipse(0, 0, 13, 9, 0, 0, TAU); c.fill(); c.restore();
-          }
+          last = t;
+          var bl = c.createLinearGradient(0, 0, BW, 0); bl.addColorStop(0, '#B4985A'); bl.addColorStop(.5, '#CDB071'); bl.addColorStop(1, '#AD9154');
+          c.fillStyle = bl; c.fillRect(0, 0, BW, H);
+          for (var rb = 0; rb < NC; rb++) { var cp0 = cellAt(rb, t + amb); A.rbc(c, cp0[0], cp0[1], 16, Math.PI / 2 + (rb % 3 - 1) * .12); }
           /* the cytoplasm of the muscle cell, behind its membrane */
-          var bg = c.createLinearGradient(58, 0, W, H); bg.addColorStop(0, '#3C3524'); bg.addColorStop(1, '#2C2619');
-          c.fillStyle = bg; c.fillRect(58, 0, W - 58, H);
-          c.strokeStyle = 'rgba(232,214,170,.9)'; c.lineWidth = 3; c.beginPath(); c.moveTo(58, -2); c.lineTo(58, H + 2); c.stroke();
-          c.strokeStyle = 'rgba(232,214,170,.35)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(63, -2); c.lineTo(63, H + 2); c.stroke();
+          var bg = c.createLinearGradient(BW, 0, W, H); bg.addColorStop(0, '#3C3524'); bg.addColorStop(1, '#2C2619');
+          c.fillStyle = bg; c.fillRect(BW, 0, W - BW, H);
+          c.strokeStyle = 'rgba(232,214,170,.9)'; c.lineWidth = 3; c.beginPath(); c.moveTo(BW, -2); c.lineTo(BW, H + 2); c.stroke();
+          c.strokeStyle = 'rgba(232,214,170,.35)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(BW + 5, -2); c.lineTo(BW + 5, H + 2); c.stroke();
           /* the fibres that use the energy, along the foot of the cell */
           var fibK = t < 24 ? 0 : .5 - .5 * Math.cos((t - 24) * 2.6);
-          A.fibre(c, 76, 262, 474, 60, fibK, { rows: 1, glow: 0 });
+          A.fibre(c, BW + 16, 262, W - BW - 26, 60, fibK, { rows: 1, glow: 0 });
           D.mito(c, MX, MY, ML, MW, 0, .18 * seg(t, 17, 18.2));
           /* step 2: two enzymes split the glucose */
           splitter(c, GX, GY, t, 5, 6.8, 8.4, 22, 84, 44, 'v');
           if (t < 7.4) {
-            var g = t < 3.6 ? along([26, GY], [GX, GY], seg(t, .3, 3.2)) : [GX, GY];
+            var g = t < 3.6 ? along([PLASMA, GY], [GX, GY], seg(t, .3, 3.2)) : [GX, GY];
             mol(c, 'glucose', [g[0], g[1] + (t < 5 ? wob(amb, 1, 2) : 0)], Math.PI / 2 - .2, 1.7 * u, 1 - seg(t, 7.1, 7.4));
           }
           /* the two smaller molecules */
@@ -106,9 +123,9 @@
           A.enzyme(c, eX, 112, 19, Math.PI); A.enzyme(c, eX, 176, 19, Math.PI);
           /* oxygen: into the cytoplasm, into the mitochondrion, then water */
           for (var i = 0; i < 6; i++) {
-            var o = t < 4.2 ? along(O2[i], O2in[i], seg(t, .2 + i * .24, 3.6 + i * .1)) : O2in[i];
+            var o = o2At(i, t);
             if (t >= 11) o = along(O2in[i], O2m[i], seg(t, 11.2 + i * .14, 15));
-            var oa = 1 - seg(t, wAt(i), wAt(i) + .4), dr = t < 15 ? 2 : .8;
+            var oa = 1 - seg(t, wAt(i), wAt(i) + .4), dr = t < o2Off(i) ? 0 : t < 15 ? 2 : .8;
             mol(c, 'oxygen', [o[0] + wob(amb, i, dr), o[1] + wob(amb, i + 3, dr)], i, u, oa);
           }
           /* carbon dioxide: released one at a time, then out to the blood */
@@ -139,7 +156,8 @@
       }
       return {
         W: W, H: H,
-        seek: function () { amb = 0; }, to: function () {}, idle: function (d) { amb += d; },
+        seek: function () { amb = 0; drift = [0, 0, 0, 0, 0, 0]; }, to: function () {},
+        idle: function (d) { amb += d; for (var j = 0; j < 6; j++) if (last >= 26.6 + j * .24) drift[j] += d; },
         draw: draw,
         keyNow: function (t) {
           var k = ['rbc'];
@@ -154,7 +172,7 @@
         },
         labels: function (t) {
           var it = [];
-          if (t < 5) it.push({ id: 'blood', text: 'blood', x: 26, y: 18, side: 'T' }, { id: 'mem', text: 'cell membrane', x: 58, y: 318, side: 'B' });
+          if (t < 5) it.push({ id: 'plasma', text: 'plasma', x: PLASMA, y: 18, side: 'T' }, { id: 'mem', text: 'cell membrane', x: BW, y: 318, side: 'B' });
           it.push({ id: 'cyto', text: 'cytoplasm', x: 138, y: 16, side: 'T' });
           it.push({ id: 'mito', text: 'mitochondrion', x: 470, y: 90, side: 'T' });
           if (t >= 5 && t < 9.6) it.push({ id: 'enz', text: 'enzymes', x: GX, y: GY - lerp(84, 44, ease(seg(t, 5, 6.8))) - 6 - 40 * ease(seg(t, 8.4, 9.6)), side: 'T' });
@@ -304,61 +322,68 @@
     title: 'The oxygen debt, step by step',
     aria: 'A body during vigorous exercise. The muscles cannot get enough oxygen and form lactic acid, which builds up in the muscles and blood. After exercise the heart and breathing stay fast: the blood carries the lactic acid through the heart and lungs to the liver, where oxygen is used to break it down. Then the heart and breathing return to rest.',
     pills: [['h', 'Heart rate:'], ['b', 'Breathing:']],
-    key: [['lactic', 'lactic acid'], ['oxygen', 'oxygen'], ['spark', 'energy released']],
+    credit: 'Body: BodyParts3D, The Database Center for Life Science, CC BY-SA 2.1 JP, rendered for this lab. The vessels of the arms and of the liver are drawn for this lab. Nothing here is measured.',
+    key: [['lactic', 'lactic acid'], ['oxygen', 'oxygen'], ['rbc', 'red blood cell'], ['spark', 'energy released']],
     M: DEBT_M,
     steps: [
       { t: 0, h: 'Vigorous exercise', p: [['ig', 'During **vigorous exercise** the muscles contract more strongly, so they need much more energy. The **heart rate** and the **rate and depth of breathing** increase, to bring more oxygen.']] },
       { t: 5, h: 'Not enough oxygen', p: [['ig', 'The muscles **cannot get enough oxygen** for aerobic respiration, so some muscle cells **respire anaerobically** and form **lactic acid**.']] },
       { t: 10.5, h: 'An oxygen debt builds up', p: [['ig', '**Lactic acid builds up** in the muscles and the blood. This causes an **oxygen debt**: the oxygen needed after exercise to remove the lactic acid.']] },
-      { t: 16, h: 'The exercise stops', p: [['ig', 'The muscles rest, but the **fast heart rate continues**. The blood **transports the lactic acid** from the muscles, through the heart and lungs, to the **liver**.']] },
-      { t: 22, h: 'Deeper, faster breathing continues', p: [['ig', '**Deeper and faster breathing continues**. It **supplies oxygen**, and the blood carries this oxygen to the liver for the aerobic respiration of the lactic acid.']] },
+      { t: 16, h: 'The exercise stops', p: [['ig', 'The muscles rest, but the **fast heart rate continues**. The **blood plasma transports the lactic acid** from the muscles, through the heart and lungs, to the **liver**.']] },
+      { t: 22, h: 'Deeper, faster breathing continues', p: [['ig', '**Deeper and faster breathing continues**. It **supplies oxygen**, and the **red blood cells** carry this oxygen to the liver for the aerobic respiration of the lactic acid.']] },
       { t: 27.5, h: 'The liver breaks down the lactic acid', p: [['ig', 'In the **liver**, each lactic acid molecule is **broken down by aerobic respiration**, using oxygen. The oxygen debt is now being removed.'], ['bey', 'Much of the lactic acid is changed back into glucose in the liver, and heart and muscle cells also respire some of it.']] },
       { t: 33, h: 'Back to rest', p: [['ig', 'When the **oxygen debt** has been removed, the **heart rate** and the **breathing rate** return to their **resting values**.']] }
     ],
     make: function () {
-      var W = 560, H = 560, amb = 0, B = A.Body({ x0: 70, y0: 40, w: 700, h: 700 }, W, H), IN2 = { x: 462, y: 104, r: 92 };
+      var W = 560, H = 560, amb = 0, ah = 0, ab = 0, last = 0, WIN = { x0: 70, y0: 8, w: 700, h: 720 }, ROOM = { x0: 70, y0: -36, w: 700, h: 764 }, B = A.Body(WIN, W, H), IN2 = { x: 462, y: 104, r: 92 };
       var DOTS = [];
       (function () {
         var r = K.rng(12);
         for (var i = 0; i < N; i++) {
-          var right = i % 2 === 0, hx = right ? 632 : 214;
-          DOTS.push({ right: right, arm: [hx + (r() - .5) * 34, 440 + r() * 150], born: 5.4 + i * .34, enter: 11 + i * .16, rm: 28 + i * .34,
-                      liver: [356 + r() * 64, 600 + r() * 62], off: (r() - .5) * 10, blood: i % 3 === 0 });
+          var right = i % 2 === 0, hx = right ? 660 : 182;
+          var arm = [hx + (r() - .5) * 26, 440 + r() * 150];   /* in muscle tissue, clear of the vessels */
+          DOTS.push({ right: right, arm: arm, u0: (right ? A.R.lacticR : A.R.lacticL).near(arm, .28), born: 5.4 + i * .34, enter: 11 + i * .16, rm: 28 + i * .34,
+                      liver: [304 + r() * 62, 596 + r() * 70], blood: i % 3 === 0 });
         }
       })();
+      /* lactic acid leaves its muscle cell into the nearest vein, and from there it stays inside the vessels, in the plasma */
       function dotP(q, t) {
-        var rt = q.right ? A.R.lacticR : A.R.lacticL;
-        var t0 = 16 + (q.enter - 11), k;
+        var rt = q.right ? A.R.lacticR : A.R.lacticL, t0 = 16 + (q.enter - 11), e = rt.at(q.u0), k;
         if (!q.blood) {
           if (t < t0) return q.arm;
-          if (t < t0 + .7) return along(q.arm, rt.at(0), seg(t, t0, t0 + .7));
-          k = ease(seg(t, t0 + .7, 21.8));
+          if (t < t0 + .7) return along(q.arm, e, seg(t, t0, t0 + .7));
+          k = lerp(q.u0, 1, ease(seg(t, t0 + .7, 21.8)));
         } else {
           if (t < q.enter) return q.arm;
-          if (t < q.enter + .9) { var p0 = rt.at(0); return along(q.arm, p0, seg(t, q.enter, q.enter + .9)); }
-          k = t < 16 ? .2 * seg(t, q.enter + .9, 16) : lerp(.2, 1, ease(seg(t, t0, 21.8)));
+          if (t < q.enter + .9) return along(q.arm, e, seg(t, q.enter, q.enter + .9));
+          k = t < 16 ? lerp(q.u0, q.u0 + .07, seg(t, q.enter + .9, 16)) : lerp(q.u0 + .07, 1, ease(seg(t, t0, 21.8)));
         }
         if (k >= 1) return q.liver;
-        var p = rt.at(k), near = seg(k, .94, 1);
-        return [lerp(p[0], q.liver[0], near) + q.off * .25 * (1 - near), lerp(p[1], q.liver[1], near) + q.off * .2 * (1 - near)];
+        var p = rt.at(k), near = seg(k, .97, 1);
+        return [lerp(p[0], q.liver[0], near), lerp(p[1], q.liver[1], near)];
       }
+      /* oxygen: air as far as the alveoli, then on a red blood cell as far as the liver, where it leaves the cell */
+      var AIR_S = 1.7, BLOOD_S = 3;
       function o2P(j, t) {
-        var s = o2Start(j), a = seg(t, s, s + 1.5);
-        if (t < s + 1.5) return A.R.breath.at(a);
-        var b = seg(t, s + 1.5, s + 3.8), q = DOTS[j], p = A.R.lungToLiver.at(b), near = seg(b, .86, 1);
+        var s = o2Start(j);
+        if (t < s + AIR_S) return (j % 2 ? A.R.breathR : A.R.breath).at(seg(t, s, s + AIR_S));   /* into both lungs */
+        var b = seg(t, s + AIR_S, s + AIR_S + BLOOD_S), q = DOTS[j], p = (j % 2 ? A.R.lungToLiverR : A.R.lungToLiver).at(Math.min(1, b / .92)), near = seg(b, .92, 1);
         return [lerp(p[0], q.liver[0] + 12, near), lerp(p[1], q.liver[1] - 8, near)];
       }
+      function onCell(j, t) { var s = o2Start(j) + AIR_S; return t >= s && seg(t, s, s + BLOOD_S) < .92; }
       function draw(c, t) {
-        var bh = PH.h(t) % 1, br = .5 - .5 * Math.cos(PH.b(t) * TAU), hb = Math.pow(Math.max(0, Math.sin(bh * TAU)), 2);
-        var depth = lerp(.18, 1, heartK(t)) * br, ex = seg(t, .3, 1.4) * (1 - seg(t, 15.4, 16.4));
+        last = t;
+        var bh = (PH.h(t) + ah) % 1, br = .5 - .5 * Math.cos((PH.b(t) + ab) * TAU), hb = Math.pow(Math.max(0, Math.sin(bh * TAU)), 2);
+        var depth = lerp(.18, 1, heartK(t)) * br, ex = seg(t, .3, 1.4) * (1 - seg(t, 16, 17));
         screen(c, W, H, '#10263A', '#0A1826', function () {
           B.draw(c, [['base', 1], ['muscle', 1]]);
           B.glow(c, 'muscle', '255,170,80', .05 + .2 * ex * (.5 + .5 * Math.sin((t + amb) * 7)));
           B.glow(c, 'muscle', '255,92,150', .24 * seg(t, 6, 15) * (1 - seg(t, 18, 28)));
-          B.scaled(c, 'lungs', 1 + .02 * depth, 1 + .08 * depth, 420, 340, 1);
+          B.scaled(c, 'lungs', 1 + .02 * depth, 1 + .06 * depth, 420, 340, .72);
           B.glow(c, 'lungs', '255,255,255', .03 + .1 * depth);
-          B.draw(c, [['gut', .55], ['liver', 1], ['blood', 1]]);
-          B.glow(c, 'liver', '255,214,120', .32 * seg(t, 27.5, 29) * (1 - seg(t, 32.6, 34.4)));
+          B.draw(c, [['pulmA', .95], ['pulmV', .95], ['airways', .88], ['gut', .55], ['liver', 1], ['blood', 1]]);
+          B.tubes(c, 1);
+          B.glow(c, 'liver', '255,214,120', .32 * seg(t, 27.5, 29) * (1 - seg(t, 33, 34.6)));
           var s = 1 + .05 * hb * lerp(.6, 1, heartK(t));
           B.scaled(c, 'heart', s, s, 445, 493, 1);
           /* oxygen, breathed in through a nostril and carried to the liver */
@@ -366,22 +391,50 @@
             var st = o2Start(j);
             if (t < st) continue;
             var oa = Math.min(seg(t, st, st + .3), 1 - seg(t, DOTS[j].rm, DOTS[j].rm + .3));
-            if (oa > 0) mol(c, 'oxygen', B.to(o2P(j, t)), j * .7, 30, oa);
+            if (oa > 0) { var op = B.to(o2P(j, t)); if (onCell(j, t)) A.rbc(c, op[0], op[1], 11, j * .7, oa); mol(c, 'oxygen', op, j * .7, 26, oa); }
           }
           /* lactic acid: formed in the muscles, carried to the liver, removed one molecule at a time */
           for (var i = 0; i < N; i++) {
             var q = DOTS[i], la = Math.min(seg(t, q.born, q.born + .5), 1 - seg(t, q.rm, q.rm + .4));
             if (la <= 0) continue;
-            mol(c, 'lactic', B.to(dotP(q, t)), i * .7, 30, la);
+            mol(c, 'lactic', B.to(dotP(q, t)), i * .7, 27, la);
           }
           /* each molecule's star, over all the molecules */
           for (var f = 0; f < N; f++) { var fp = B.to(DOTS[f].liver); flash(c, fp[0], fp[1], t, DOTS[f].rm, 9); }
-          inset(c, t, ex);
+          inset(c, t, ex); lens(c, t);
         });
+      }
+      /* steps 4 and 5: a closer look inside a vessel. Red blood cells carry the oxygen; the lactic acid is in the plasma, between them */
+      function lens(c, t) {
+        var a = seg(t, 16.7, 17.5) * (1 - seg(t, 27.5, 28.2));
+        if (a <= 0) return;
+        /* step 4 looks into a vein of the arm; step 5 into the aorta, on the way to the liver */
+        var to = ease(seg(t, 22, 22.8)), T = t + amb, p = B.to([lerp(593, 432, to), lerp(402, 600, to)]), x0 = IN2.x - IN2.r, w = 2 * IN2.r, sp = w / 3;
+        c.save(); c.globalAlpha = a;
+        c.strokeStyle = 'rgba(255,244,196,.75)'; c.lineWidth = 1.4; c.setLineDash([5, 4]); c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(IN2.x, IN2.y + IN2.r); c.stroke(); c.setLineDash([]);
+        c.fillStyle = 'rgba(255,244,196,.95)'; c.beginPath(); c.arc(p[0], p[1], 3.2, 0, TAU); c.fill();
+        c.save(); c.beginPath(); c.arc(IN2.x, IN2.y, IN2.r, 0, TAU); c.clip();
+        var bg = c.createLinearGradient(0, IN2.y - IN2.r, 0, IN2.y + IN2.r); bg.addColorStop(0, '#B4985A'); bg.addColorStop(.5, '#D2B678'); bg.addColorStop(1, '#AD9154');
+        c.fillStyle = bg; c.fillRect(x0, IN2.y - IN2.r, w, w);
+        var oA = seg(t, 22, 23);
+        for (var r = 0; r < 2; r++) for (var n = 0; n < 4; n++) {
+          var cx = x0 - sp / 2 + (((T * 30 + (n + r * .5) * sp) % (sp * 4)) + sp * 4) % (sp * 4), cy = IN2.y + (r ? 54 : -54);
+          A.rbc(c, cx, cy, 25, .2 + n);
+          if (oA > 0) mol(c, 'oxygen', [cx, cy], n, 30, oA);
+        }
+        /* the lactic acid passes: by the end of step 4 all of it has reached the liver */
+        var lacA = 1 - seg(t, 20.5, 21.8);
+        if (lacA > 0) for (var m = 0; m < 3; m++) {
+          var lx = x0 - 20 + (((T * 30 + m * (w + 40) / 3) % (w + 40)) + w + 40) % (w + 40);
+          mol(c, 'lactic', [lx, IN2.y + wob(T, m, 3)], m, 40, lacA);
+        }
+        c.restore();
+        c.beginPath(); c.arc(IN2.x, IN2.y, IN2.r, 0, TAU); c.strokeStyle = 'rgba(255,244,196,.9)'; c.lineWidth = 2; c.stroke();
+        c.restore();
       }
       /* steps 1 to 3: a closer look at one muscle cell, joined to the arm */
       function inset(c, t, ex) {
-        var a = 1 - seg(t, 15.8, 16.8);
+        var a = 1 - seg(t, 16, 16.8);
         if (a <= 0) return;
         var p = B.to([628, 470]);
         c.save(); c.globalAlpha = a;
@@ -401,12 +454,17 @@
       }
       return {
         W: W, H: H,
-        seek: function () { amb = 0; }, to: function () {}, idle: function (d) { amb += d; },
+        /* in the column of a laptop the picture takes the shape of the room there is */
+        fit: function (a) { W = a ? Math.max(460, Math.round(H * a)) : 560; this.W = W; B = A.Body(a ? ROOM : WIN, W, H); IN2.x = W - 98; IN2.y = a ? 152 : 104; },
+        seek: function () { amb = 0; ah = 0; ab = 0; }, to: function () {},
+        /* a step that waits for the reader: the heart goes on beating and the chest goes on breathing, at the rate of this moment */
+        idle: function (d) { var q = heartK(last); amb += d; ah += d * (1 + 1.5 * q); ab += d * (.24 + .4 * q); },
         draw: draw,
         keyNow: function (t) {
           var k = [];
           if (t >= 5.4 && t < 32.82) k.push('lactic');
           if (t < 16.8 || (t >= o2Start(0) && t < 32.72)) k.push('oxygen');
+          if ((t >= 16.7 && t < 28.2) || (t >= o2Start(0) + AIR_S && t < o2Start(N - 1) + AIR_S + BLOOD_S * .92)) k.push('rbc');
           if (t >= 28 && t < 33.12) k.push('spark');
           return k;
         },
@@ -415,10 +473,11 @@
           pill('b', t < 1 ? 'resting' : t < 33.4 ? (t < 16 ? 'deeper and faster' : 'still deeper and faster') : t < 37 ? 'decreasing' : 'resting', t >= 1 && t < 33.4 ? 'warn' : 'ok');
         },
         labels: function (t) {
-          var it = [], mp = B.to([218, 430]), lp = B.to([304, 628]), hp = B.to([470, 500]), lg = B.to([548, 500]);
+          var it = [], mp = B.to([218, 430]), lp = B.to([304, 628]), hp = B.to([498, 505]), lg = B.to([548, 500]);
           it.push({ id: 'mus', text: 'muscles', x: mp[0], y: mp[1], side: 'T' });
           if (t < 16.8) it.push({ id: 'cell', text: 'one muscle cell', x: IN2.x, y: IN2.y - IN2.r + 8, side: 'T' });
           if (t >= 16) it.push({ id: 'liv', text: 'liver', x: lp[0], y: lp[1], side: 'B' });
+          if (t >= 17.2 && t < 27.5) { it.push({ id: 'ves', text: 'blood vessel', x: IN2.x + 34, y: IN2.y - IN2.r + 8, side: 'T' }); it.push({ id: 'pl', text: 'plasma', x: IN2.x - 44, y: IN2.y - 18, side: 'T' }); }
           it.push({ id: 'h', text: 'heart', x: hp[0], y: hp[1], side: 'T' });
           if (t >= 16.8) it.push({ id: 'lu', text: 'lungs', x: lg[0], y: lg[1], side: 'T' });
           return it;

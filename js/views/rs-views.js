@@ -29,7 +29,7 @@
   /* ======================================================================= 1. What respiration is */
   Views.add('bodycell', function (spec, ctx) {
     var W = 600, H = 620, t = 0, mode = 'resp', foc = null;
-    var B = A.Body({ x0: 70, y0: 30, w: 700, h: 880 }, 420, H), IN = { x: 470, y: 158, r: 118 };
+    var WIN = { x0: 70, y0: 8, w: 700, h: 900 }, ROOM = { x0: 70, y0: -36, w: 700, h: 944 }, B = A.Body(WIN, 420, H), IN = { x: 470, y: 158, r: 118 };
     var SP = [[214, 540], [190, 470], [236, 610], [634, 520], [660, 600], [330, 860], [520, 880], [360, 820], [500, 800], [400, 640], [360, 620], [430, 820], [460, 760], [440, 490], [420, 96], [395, 120], [450, 110]].map(function (q, i) { return { x: q[0], y: q[1], p: i * .37 }; });
     function inset(c, g) {
       var a = B.to([628, 470]);
@@ -59,19 +59,21 @@
     }
     var scene = {
       W: W, H: H,
+      /* the picture takes the shape of its column: the body on the left, the close-up on the right */
+      fit: function (a) { W = a ? Math.max(560, Math.round(H * a)) : 600; scene.W = W; B = A.Body(a ? ROOM : WIN, a ? Math.min(W - 150, 470) : 420, H); IN.x = a ? W - 134 : 470; IN.y = a ? 190 : 158; },
       tick: function (dt) { t += dt; },
       draw: function (c) {
         sc(c, W, H, '#11283C', '#0A1826', function () {
           var phase = t * 1.2, br = .5 - .5 * Math.cos(phase);
           B.draw(c, [['base', 1], ['muscle', mode === 'breath' ? .45 : 1]]);
-          if (mode === 'breath') B.scaled(c, 'lungs', 1 + .03 * br, 1 + .09 * br, 420, 340, 1);
+          if (mode === 'breath') { B.scaled(c, 'lungs', 1 + .02 * br, 1 + .06 * br, 420, 340, .72); B.draw(c, [['airways', 1]]); }
           else B.draw(c, [['lungs', 1]]);
           B.draw(c, [['gut', mode === 'breath' ? .25 : .7], ['liver', mode === 'breath' ? .3 : 1], ['blood', mode === 'breath' ? .4 : 1]]);
           if (mode === 'breath') {
             B.glow(c, 'lungs', '255,255,255', .05 + .16 * br);
             /* the air: in through a nostril and down to the lungs, then out again */
             for (var a = 0; a < 7; a++) {
-              var u = clamp(br * 1.15 - a * .05), p = B.to(A.R.breath.at(u));
+              var u = clamp(br * 1.15 - a * .05), p = B.to((a % 2 ? A.R.breathR : A.R.breath).at(u));   /* into both lungs */
               D.mol(c, 'air', p[0] + Math.sin(a * 2.1) * 3, p[1], a, 46, Math.min(1, u * 8));
             }
           } else {
@@ -87,7 +89,7 @@
       labels: function () {
         var it = [];
         if (mode === 'breath') {
-          var l = B.to([548, 470]), nn = B.to([522, 178]);
+          var l = B.to([548, 470]), nn = B.to([426, 172]);
           it.push({ id: 'lu', text: 'lungs', x: l[0], y: l[1], side: 'T' }, { id: 'air', text: 'air', x: nn[0], y: nn[1], side: 'T' });
         } else {
           it.push({ id: 'cell', text: 'one muscle cell', x: IN.x - 40, y: IN.y - IN.r + 14, side: 'T' });
@@ -96,11 +98,11 @@
         return it;
       }
     };
-    var V = RV({ scene: scene, aria: 'A body with lights in its cells, and a close-up of one muscle cell. A button shows breathing instead: air moves into and out of the lungs.', barLabel: 'What to show',
+    var V = RV({ scene: scene, fill: true, aria: 'A body with lights in its cells, and a close-up of one muscle cell. A button shows breathing instead: air moves into and out of the lungs.', barLabel: 'What to show',
       buttons: [['resp', 'Respiration'], ['breath', 'Breathing']], key: { all: [['spark', 'energy released in a cell']], sets: [['energy released in a cell'], []], now: function () { return mode === 'resp' ? ['energy released in a cell'] : []; } },
       onButton: function (id) { mode = id; foc = null; if (id === 'breath') ctx.pick('breathing', { stay: true }); sync(); } });
     function sync() { pressAll(V, ['resp', 'breath'], mode); V.names(); V.paint(); }
-    return { el: V.el, start: function () { V.start(); sync(); }, stop: V.stop,
+    return { el: V.el, tight: V.fig, start: function () { V.start(); sync(); }, stop: V.stop,
       say: 'Breathing moves air. Respiration releases energy inside every cell.',
       credit: BODY_CREDIT,
       focus: function (part) { foc = part || null; mode = part === 'breathing' ? 'breath' : 'resp'; sync(); } };
@@ -138,7 +140,7 @@
         for (var i = 0; i <= m; i++) {
           var x = cx - 6 - (m - i) * 26 - (u * n - m) * 26, y = cy - 4 + Math.sin((m - i) * .9 + t) * 4;
           c.fillStyle = COL[i % 9]; c.beginPath(); c.arc(x, y, 11, 0, TAU); c.fill(); c.strokeStyle = 'rgba(14,29,46,.6)'; c.lineWidth = 1; c.stroke();
-          if (i) { c.strokeStyle = '#EDF2F7'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(x + 11, y); c.lineTo(x + 15, y); c.stroke(); }
+          if (i < m) { c.strokeStyle = '#EDF2F7'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(x + 11, y); c.lineTo(x + 15, y); c.stroke(); }
         }
         var f = ease((u * n) % 1), fx = lerp(560, cx + 4, f), fy = lerp(96, cy - 4, f);
         if (v0 < .9) { c.fillStyle = COL[(m + 1) % 9]; c.beginPath(); c.arc(fx, fy, 11, 0, TAU); c.fill(); c.strokeStyle = 'rgba(14,29,46,.6)'; c.lineWidth = 1; c.stroke(); }
@@ -236,7 +238,7 @@
       draw: function (c) { sc(c, W, H, '#142A40', '#0E1D2E', function () { feed(c); U[cur](c); }); },
       labels: function () {
         var it = [{ id: 'mito', text: 'mitochondrion', x: MX + 22, y: MY - 30, side: 'T' }];
-        var nm = { muscle: [['muscle cell', 300, 118, 'T']], protein: [['ribosome', 400, 186, 'T'], ['amino acids', Math.max(300, 394 - 234 * Math.min(.999, ((t * .24) % 1) / .9)), 212, 'B']], division: null, transport: [['protein carrier', 392, 172, 'T'], ['lower concentration', 244, 108, 'T'], ['higher concentration', 498, 138, 'T']], growth: [['new cells', 396 - 3 * 58, 186, 'T']], impulse: [['neurone', 330, 200, 'T']], heat: [['heat released', 520, 110, 'T']] }[cur];
+        var nm = { muscle: [['muscle cell', 300, 118, 'T']], protein: [['ribosome', 400, 186, 'T'], ['amino acids', Math.max(300, 394 - 234 * Math.min(.999, ((t * .24) % 1) / .9)), 212, 'B']], division: null, transport: [['protein carrier', 392, 172, 'T'], ['lower concentration', 244, 108, 'T'], ['higher concentration', 498, 138, 'T']], growth: [['new cells', 222 + (1 + Math.floor(Math.min(.999, ((t * .12) % 1) / .84) * 6)) * 58, 186, 'T']], impulse: [['neurone', 330, 200, 'T']], heat: [['heat released', 520, 110, 'T']] }[cur];
         if (cur === 'division') {
           var d = divAt(t), sep2 = d.k * 86;
           nm = d.show > .5 ? [['chromosomes', 392 + (d.apart > 0 ? d.apart * sep2 * .94 : 0), 200, 'B']] : d.form > .5 ? [['nucleus', 392 + sep2 * .94, 200, 'B']] : [['nucleus', 392, 200, 'B']];
@@ -355,7 +357,7 @@
           return its;
         }
         var y = H / 2 + 54;
-        return [{ id: 'gl', text: 'glucose', x: 78, y: H / 2 + 26, side: 'B' }, { id: 'ox', text: 'oxygen', x: 212, y: y, side: 'B' }, { id: 'co', text: 'carbon dioxide', x: 398, y: y, side: 'B' }, { id: 'wa', text: 'water', x: 528, y: y, side: 'B' }];
+        return [{ id: 'gl', text: 'glucose', x: 78, y: H / 2 + 26, side: 'B' }, { id: 'ox', text: 'oxygen', x: 234, y: y, side: 'B' }, { id: 'co', text: 'carbon dioxide', x: 426, y: y, side: 'B' }, { id: 'wa', text: 'water', x: 552, y: y, side: 'B' }];
       },
       read: function (pill) {
         if (mode === 'where') { pill('e', 'in the mitochondria', 'ok', 'Where:'); pill('n', 'have many mitochondria, for more aerobic respiration', '', 'Muscle cells:'); return; }
@@ -371,7 +373,8 @@
       key: { all: [['glucose', 'glucose'], ['oxygen', 'oxygen'], ['co2', 'carbon dioxide'], ['water', 'water'], ['spark', 'energy released']], sets: [['glucose', 'oxygen', 'carbon dioxide', 'water'], ['energy released'], []], now: function () { return mode === 'where' ? ['energy released'] : mode === 'atoms' ? [] : ['glucose', 'oxygen', 'carbon dioxide', 'water']; } },
       onButton: function (id) { mode = id; runAt = 0; if (id === 'word' || id === 'balanced' || id === 'where') ctx.pick(id, { stay: true }); sync(); } });
     var atomKey = document.createElement('p'); atomKey.className = 'rsv-note'; atomKey.innerHTML = '<span style="color:#76839C">●</span> carbon &nbsp; <span style="color:#E6EEF5;-webkit-text-stroke:.6px #51667A">●</span> hydrogen (small) &nbsp; <span style="color:#FF7468">●</span> oxygen'; atomKey.hidden = true;
-    V.el.appendChild(atomKey);
+    /* the key of the atoms lies on the picture: under it, it would need a row the column does not have */
+    atomKey.classList.add('rsv-note--on'); V.fig.style.position = 'relative'; V.fig.appendChild(atomKey);
     function sync() { pressAll(V, ['word', 'balanced', 'atoms', 'where'], mode); atomKey.hidden = mode !== 'atoms'; if (V.isStill() && mode === 'atoms') runAt = 11; V.names(); V.paint(); }
     return { el: V.el, start: function () { V.start(); sync(); }, stop: V.stop,
       say: 'Glucose and oxygen react: carbon dioxide and water are formed',
@@ -381,23 +384,26 @@
 
   /* ======================================================================= 4. From food and air to the cell */
   Views.add('routes', function (spec, ctx) {
-    var W = 560, H = 640, t = 0, cur = 'glucose', B = A.Body({ x0: 70, y0: 30, w: 700, h: 880 }, W, H);
+    var W = 560, H = 640, t = 0, cur = 'glucose', WIN = { x0: 70, y0: 8, w: 700, h: 880 }, ROOM = { x0: 70, y0: -36, w: 700, h: 924 }, B = A.Body(WIN, W, H);
     /* oxygen rides on red blood cells from the lungs on: the part of its route before the lungs is air */
-    var LUNG_AT = (function () { var P = A.R.oxygen.P, s = 0; for (var i = 1; i < P.length; i++) { s += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); if (P[i][0] === 342) return s / A.R.oxygen.len; } return .4; })();
+    var LUNG_AT = A.R.oxygen.marks.lung;
     var INFO = {
-      glucose: { rt: [A.R.glucose], mol: 'glucose', u: 34, glow: ['gut', '255,206,120'], names: [['small intestine', 440, 830, 'B'], ['plasma', 372, 372, 'T'], ['muscle cells', 228, 470, 'T']] },
-      oxygen: { rt: [A.R.oxygen], mol: 'oxygen', u: 34, glow: ['lungs', '180,220,255'], names: [['alveoli in the lungs', 530, 480, 'T'], ['muscle cells', 228, 470, 'T']] },
-      co2: { rt: [A.R.co2], mol: 'co2', u: 36, glow: ['lungs', '190,200,220'], names: [['muscle cells', 228, 470, 'T'], ['plasma', 316, 386, 'T'], ['breathed out', 522, 178, 'T']] },
-      water: { rt: [A.R.sweat, A.R.breathOut, A.R.urine], mol: 'water', u: 44, glow: ['kidneys', '150,200,255'], names: [['sweat', 118, 586, 'T'], ['expired air', 522, 178, 'T'], ['kidney (forms urine)', 486, 692, 'B']] }
+      glucose: { rt: [A.R.glucose], mol: 'glucose', u: 34, glow: ['gut', '255,206,120'], names: [['small intestine', 452, 846, 'B'], ['plasma', 404, 690, 'B'], ['muscle cells', 180, 500, 'T']] },
+      oxygen: { rt: [A.R.oxygen], mol: 'oxygen', u: 34, glow: ['lungs', '180,220,255'], names: [['alveoli in the lungs', 282, 576, 'B'], ['muscle cells', 180, 560, 'B']] },
+      co2: { rt: [A.R.co2], mol: 'co2', u: 36, glow: ['lungs', '190,200,220'], names: [['muscle cells', 180, 560, 'B'], ['plasma', 330, 376, 'T'], ['breathed out', 426, 172, 'T']] },
+      water: { rt: [A.R.sweat, A.R.breathOut, A.R.urine], mol: 'water', u: 44, glow: ['kidneys', '150,200,255'], names: [['sweat', 118, 586, 'T'], ['expired air', 426, 172, 'T'], ['kidney (forms urine)', 486, 692, 'B']] }
     };
     function rbcAt(i, n) { return ((t * .08 + i / n) % 1); }
     var scene = {
       W: W, H: H, tick: function (dt) { t += dt; },
+      fit: function (a) { W = a ? Math.max(460, Math.round(H * a)) : 560; scene.W = W; B = A.Body(a ? ROOM : WIN, W, H); },
       draw: function (c) {
         var I = INFO[cur];
         sc(c, W, H, '#11283C', '#0A1826', function () {
-          B.draw(c, [['base', 1], ['muscle', 1], ['lungs', 1], ['gut', cur === 'glucose' ? 1 : .55], ['kidneys', cur === 'water' ? 1 : .35], ['liver', .85], ['blood', 1]]);
-          B.glow(c, I.glow[0], I.glow[1], .16 + .14 * Math.sin(t * 2));
+          B.draw(c, [['base', 1], ['muscle', .8], ['lungs', .62]]);
+          B.glow(c, I.glow[0], I.glow[1], .1 + .08 * Math.sin(t * 2));
+          B.draw(c, [['pulmA', 1], ['pulmV', 1], ['airways', .9], ['gut', cur === 'glucose' ? 1 : .55], ['kidneys', cur === 'water' ? 1 : .35], ['liver', .85], ['blood', 1]]);
+          B.tubes(c, 1);
           I.rt.forEach(function (r, ri) {
             c.save(); c.strokeStyle = 'rgba(255,244,196,.5)'; c.lineWidth = 2; c.setLineDash([5, 6]); c.beginPath();
             r.P.forEach(function (p, i) { var s = B.to(p); c[i ? 'lineTo' : 'moveTo'](s[0], s[1]); }); c.stroke(); c.restore();
@@ -405,9 +411,7 @@
             for (var i = 0; i < n; i++) {
               var u = (t * (cur === 'water' ? .16 : .08) + i / n + ri * .13) % 1, p = B.to(r.at(u)), al = Math.min(1, Math.min(u, 1 - u) * 12);
               if (cur === 'oxygen' && u > LUNG_AT) {
-                c.save(); c.globalAlpha = al; c.translate(p[0], p[1]);
-                var rg = c.createRadialGradient(0, 0, 1, 0, 0, 13); rg.addColorStop(0, '#A8293A'); rg.addColorStop(.65, '#E0505B'); rg.addColorStop(1, '#8C1F2E');
-                c.fillStyle = rg; c.beginPath(); c.ellipse(0, 0, 13, 10, i, 0, TAU); c.fill(); c.restore();
+                A.rbc(c, p[0], p[1], 13, i, al);
               }
               D.mol(c, I.mol, p[0], p[1], i, I.u, al);
             }
@@ -419,7 +423,7 @@
         if (cur === 'oxygen') {
           /* the name stays on one red blood cell, and moves with it */
           var r = A.R.oxygen, n = Math.max(4, Math.round(r.len / 90)), pick = null;
-          for (var i = 0; i < n; i++) { var u = rbcAt(i, n); if (u > LUNG_AT + .04 && u < .84) { pick = u; break; } }
+          for (var i = 0; i < n; i++) { var u = rbcAt(i, n); if (u > .74 && u < .94) { pick = u; break; } }
           if (pick != null) { var p = B.to(r.at(pick)); it.push({ id: 'hb', text: 'haemoglobin', x: p[0], y: p[1], side: 'T' }); }
         }
         return it;
@@ -428,13 +432,13 @@
         pill('r', { glucose: 'small intestine → plasma → every cell', oxygen: 'alveoli → haemoglobin → every cell', co2: 'cells → plasma → lungs → breathed out', water: 'stays in the body, or leaves in urine, sweat and expired air' }[cur], 'ok');
       }
     };
-    var V = RV({ scene: scene, aria: 'The body, with one substance moving along its route.', barLabel: 'Choose a substance', liveNames: true,
+    var V = RV({ scene: scene, fill: true, aria: 'The body, with one substance moving along its route.', barLabel: 'Choose a substance', liveNames: true,
       buttons: [['glucose', 'Glucose'], ['oxygen', 'Oxygen'], ['co2', 'Carbon dioxide'], ['water', 'Water']], read: [['r', 'Route:']],
       onButton: function (id) { cur = id; ctx.pick(id, { stay: true }); sync(); } });
     function sync() { pressAll(V, ['glucose', 'oxygen', 'co2', 'water'], cur); V.names(); V.paint(); }
-    return { el: V.el, start: function () { V.start(); sync(); }, stop: V.stop,
+    return { el: V.el, tight: V.fig, start: function () { V.start(); sync(); }, stop: V.stop,
       say: 'Press a substance and follow it through the body',
-      credit: BODY_CREDIT + ' The dashed lines are simplified routes.',
+      credit: BODY_CREDIT + ' The vessels of the arms and of the liver are drawn for this lab.',
       focus: function (part) { if (part && INFO[part]) cur = part; sync(); } };
   });
 
@@ -623,11 +627,11 @@
   /* ======================================================================= 8. The oxygen debt: rest, exercise, after
      Nothing here is a measurement (his breathing-rate practical is assessed). */
   Views.add('debtbody', function (spec, ctx) {
-    var W = 560, H = 560, B = A.Body({ x0: 70, y0: 40, w: 700, h: 700 }, W, H), state = 'rest', t = 0, g = 0, ph = 0, bph = 0, N = 16, V = null, nextAt = 0;
+    var W = 560, H = 560, WIN = { x0: 70, y0: 8, w: 700, h: 720 }, ROOM = { x0: 70, y0: -36, w: 700, h: 764 }, B = A.Body(WIN, W, H), state = 'rest', t = 0, g = 0, ph = 0, bph = 0, N = 16, V = null, nextAt = 0;
     var DOTS = (function () {
       var o = [], s = 9;
       function r() { s = (s * 16807) % 2147483647; return (s % 1000) / 1000; }
-      for (var i = 0; i < N; i++) { var right = i % 2 === 0; o.push({ right: right, arm: [(right ? 632 : 214) + (r() - .5) * 34, 440 + r() * 150], liver: [356 + r() * 64, 600 + r() * 62], u: 0, on: false, gone: false, sp: .8 + r() * .5 }); }
+      for (var i = 0; i < N; i++) { var right = i % 2 === 0; var arm = [(right ? 660 : 182) + (r() - .5) * 26, 440 + r() * 150]; o.push({ right: right, arm: arm, u0: (right ? A.R.lacticR : A.R.lacticL).near(arm, .28), liver: [304 + r() * 62, 596 + r() * 70], u: 0, on: false, gone: false, sp: .8 + r() * .5 }); }
       return o;
     })();
     function left() { return DOTS.filter(function (q) { return q.on && !q.gone; }).length; }
@@ -652,7 +656,7 @@
     function posOf(q) {
       if (q.u <= .02) return q.arm;
       var rt = q.right ? A.R.lacticR : A.R.lacticL;
-      if (q.u < 1) { var near = seg(q.u, .94, 1), p = rt.at(q.u); return [lerp(p[0], q.liver[0], near), lerp(p[1], q.liver[1], near)]; }
+      if (q.u < 1) { var near = seg(q.u, .97, 1), p = rt.at(lerp(q.u0, 1, q.u)); return [lerp(p[0], q.liver[0], near), lerp(p[1], q.liver[1], near)]; }
       return q.liver;
     }
     function settle(id) {
@@ -664,27 +668,34 @@
     }
     var scene = {
       W: W, H: H, tick: step,
+      fit: function (a) { W = a ? Math.max(460, Math.round(H * a)) : 560; scene.W = W; B = A.Body(a ? ROOM : WIN, W, H); },
       draw: function (c) {
         var pulse = Math.pow(Math.max(0, Math.sin(ph * TAU)), 2), br = .5 - .5 * Math.cos(bph * TAU), depth = lerp(.18, 1, g) * br, frac = left() / N;
         sc(c, W, H, '#10263A', '#0A1826', function () {
           B.draw(c, [['base', 1], ['muscle', 1]]);
           if (state === 'exercise') B.glow(c, 'muscle', '255,170,80', .08 + .16 * (.5 + .5 * Math.sin(t * 7)));
           B.glow(c, 'muscle', '255,92,150', .22 * frac * (state === 'exercise' ? 1 : .55));
-          B.scaled(c, 'lungs', 1 + .02 * depth, 1 + .08 * depth, 420, 340, 1); B.glow(c, 'lungs', '255,255,255', .03 + .1 * depth);
-          B.draw(c, [['gut', .55], ['liver', 1], ['blood', 1]]);
+          B.scaled(c, 'lungs', 1 + .02 * depth, 1 + .06 * depth, 420, 340, .72); B.glow(c, 'lungs', '255,255,255', .03 + .1 * depth);
+          B.draw(c, [['pulmA', .95], ['pulmV', .95], ['airways', .88], ['gut', .55], ['liver', 1], ['blood', 1]]);
+          B.tubes(c, 1);
           if (DOTS.some(function (q) { return q.on && !q.gone && q.u >= 1; })) B.glow(c, 'liver', '255,214,120', .14 + .16 * (.5 + .5 * Math.sin(t * 3)));
           var s = 1 + .05 * pulse * lerp(.6, 1, g); B.scaled(c, 'heart', s, s, 445, 493, 1);
           DOTS.forEach(function (q, i) {
             if (!q.on || q.gone) return;
             var p = B.to(posOf(q)), fd = q.u >= 1.25 + i * .05 ? clamp((1.4 + i * .05 - q.u) / .15) : 1;
-            D.mol(c, 'lactic', p[0], p[1], i * .7, 30, fd);
+            D.mol(c, 'lactic', p[0], p[1], i * .7, 27, fd);
             if (q.u >= 1.25 + i * .05) A.spark(c, p[0], p[1] - 10, 8, Math.sin((1 - fd) * Math.PI));
           });
-          if (state !== 'exercise' && frac > 0) for (var o = 0; o < 6; o++) { var pu = (t * .28 + o / 6) % 1, ps = B.to(A.R.breath.at(pu)); D.mol(c, 'oxygen', ps[0], ps[1], o, 30, Math.sin(pu * Math.PI)); }
+          if (state !== 'exercise' && frac > 0) for (var o = 0; o < 6; o++) {
+            /* oxygen: air as far as the alveoli, then on a red blood cell to the liver */
+            var pu = (t * .16 + o / 6) % 1, inAir = pu < .42, ps = B.to(inAir ? (o % 2 ? A.R.breathR : A.R.breath).at(pu / .42) : (o % 2 ? A.R.lungToLiverR : A.R.lungToLiver).at((pu - .42) / .58)), oal = Math.min(1, Math.min(pu, 1 - pu) * 10);
+            if (!inAir) A.rbc(c, ps[0], ps[1], 11, o, oal);
+            D.mol(c, 'oxygen', ps[0], ps[1], o, 26, oal);
+          }
         });
       },
       labels: function () {
-        var mp = B.to([218, 430]), lp = B.to([304, 628]), hp = B.to([470, 500]);
+        var mp = B.to([218, 430]), lp = B.to([304, 628]), hp = B.to([498, 505]);
         return [{ id: 'mus', text: 'muscles', x: mp[0], y: mp[1], side: 'T' }, { id: 'h', text: 'heart', x: hp[0], y: hp[1], side: 'T' }, { id: 'liv', text: 'liver', x: lp[0], y: lp[1], side: 'B' }];
       },
       read: function (pill) {
@@ -694,9 +705,9 @@
         pill('s', state === 'exercise' ? 'lactic acid builds up' : l ? 'the blood carries lactic acid to the liver' : DOTS.some(function (q) { return q.gone; }) ? 'the oxygen debt has been removed' : 'enough oxygen for aerobic respiration', state === 'exercise' ? 'warn' : 'ok');
       }
     };
-    V = RV({ scene: scene, aria: 'A body at rest, during vigorous exercise, and after exercise, when the heart and breathing stay fast and the liver breaks down the lactic acid.', barLabel: 'What the body is doing',
+    V = RV({ scene: scene, fill: true, cls: 'memv--tworows', aria: 'A body at rest, during vigorous exercise, and after exercise, when the heart and breathing stay fast and the liver breaks down the lactic acid.', barLabel: 'What the body is doing',
       buttons: [['rest', 'At rest'], ['exercise', 'Vigorous exercise'], ['after', 'After exercise']], read: [['h', 'Heart rate:'], ['b', 'Breathing:'], ['s', 'Now:']],
-      key: { all: [['lactic', 'lactic acid'], ['oxygen', 'oxygen'], ['spark', 'energy released']], sets: [['lactic acid', 'oxygen', 'energy released']], now: function () { var l = left() > 0, st = DOTS.some(function (q, i) { return q.on && !q.gone && q.u >= 1.25 + i * .05; }); return l && state !== 'exercise' ? (st ? ['lactic acid', 'oxygen', 'energy released'] : ['lactic acid', 'oxygen']) : l ? ['lactic acid'] : []; } },
+      key: { all: [['lactic', 'lactic acid'], ['oxygen', 'oxygen'], ['rbc', 'red blood cell'], ['spark', 'energy released']], sets: [['lactic acid', 'oxygen', 'red blood cell', 'energy released']], now: function () { var l = left() > 0, st = DOTS.some(function (q, i) { return q.on && !q.gone && q.u >= 1.25 + i * .05; }); return l && state !== 'exercise' ? (st ? ['lactic acid', 'oxygen', 'red blood cell', 'energy released'] : ['lactic acid', 'oxygen', 'red blood cell']) : l ? ['lactic acid'] : []; } },
       onButton: function (id) { setState(id); ctx.pick(id === 'exercise' ? 'build' : id === 'after' ? 'heart' : 'rest', { stay: true }); } });
     function setState(id) {
       if (id === 'after' && !left()) { DOTS.forEach(function (q) { q.on = true; q.gone = false; q.u = .1; }); g = 1; }
@@ -706,9 +717,9 @@
       sync();
     }
     function sync() { pressAll(V, ['rest', 'exercise', 'after'], state); V.names(); V.paint(); }
-    return { el: V.el, start: function () { V.start(); sync(); }, stop: V.stop,
+    return { el: V.el, tight: V.fig, start: function () { V.start(); sync(); }, stop: V.stop,
       say: 'Press Vigorous exercise, then After exercise. Watch the heart rate and breathing.',
-      credit: BODY_CREDIT + ' Nothing here is measured.',
+      credit: BODY_CREDIT + ' The vessels of the arms and of the liver are drawn for this lab. Nothing here is measured.',
       focus: function (part) { var m = { build: 'exercise', heart: 'after', breathing: 'after', liver: 'after', rest: 'rest' }; if (part && m[part] && m[part] !== state) setState(m[part]); } };
   });
 

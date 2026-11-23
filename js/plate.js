@@ -37,6 +37,21 @@
      the reader presses the photographs, which redraws this line. */
   function caption(v) {
     if (!said) return;
+    /* A rich picture needs the whole column (Daniel, 23 Nov 2026: "the 3D space is very short ... the reference ... cuts a line"): a view with
+       `tight`, the element of its picture, shows its caption and credit under a small i on the picture, and the line under the picture goes */
+    var stage = v && v.tight, note = host ? host.querySelector('.pinfo') : null;
+    if (col) col.classList.toggle('is-tight', !!stage);
+    if (note && (!stage || note.parentNode !== stage)) { note.parentNode.removeChild(note); note = null; }
+    if (stage) {
+      said.innerHTML = '';
+      if (!note) {
+        note = document.createElement('details'); note.className = 'pinfo';
+        note.innerHTML = '<summary aria-label="About this picture and where it comes from"><span aria-hidden="true"></span></summary><p class="pinfo__t"></p>';
+        stage.appendChild(note);
+      }
+      note.querySelector('.pinfo__t').innerHTML = '<span class="pinfo__say">' + (v.say || '') + '</span>' + (v.credit ? '<span class="pinfo__credit">' + v.credit + '</span>' : '');
+      return;
+    }
     var was = said.querySelector('.said__fold'), open = !!(was && was.open);
     var list = v && v.credits && v.credits.length ? v.credits : null;
     said.innerHTML = '<span class="said__name">' + (v && v.say ? v.say : '') + '</span>' +
