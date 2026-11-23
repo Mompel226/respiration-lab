@@ -82,7 +82,11 @@
         hg.addColorStop(0, 'rgba(' + halo + ',.46)'); hg.addColorStop(.72, 'rgba(' + halo + ',.3)'); hg.addColorStop(1, 'rgba(' + halo + ',0)');
         g.fillStyle = hg; g.beginPath(); g.arc(0, 0, .44, 0, TAU); g.fill();
       }
+      /* the three small gases and water are told apart by more than their red atoms: carbon dioxide blue, water pale blue, oxygen a white ring */
+      var SOFT = { co2: '64,108,255', water: '168,244,255' }[name];
+      if (SOFT) { var sg = g.createRadialGradient(0, 0, .06, 0, 0, .32); sg.addColorStop(0, 'rgba(' + SOFT + ',.55)'); sg.addColorStop(.74, 'rgba(' + SOFT + ',.34)'); sg.addColorStop(1, 'rgba(' + SOFT + ',0)'); g.fillStyle = sg; g.beginPath(); g.arc(0, 0, .32, 0, TAU); g.fill(); }
       MOL[name].forEach(function (a) { ball(g, a[1], a[2], a[3], C[a[0]]); });
+      if (name === 'oxygen') { g.strokeStyle = 'rgba(255,255,255,.78)'; g.lineWidth = .018; g.beginPath(); g.ellipse(0, 0, .232, .17, 0, 0, TAU); g.stroke(); }
     }
     return (CACHE[key] = { cv: cv, half: (size / 2) / px });
   }
@@ -271,6 +275,7 @@
 
   /* ---------- a mitochondrion: two membranes, the inner one folded into cristae ---------- */
   function mito(c, x, y, L, W, rot, glow) {
+    L = Math.max(L, W * 2);                                    /* a mitochondrion is long: it is never drawn as a coin */
     c.save(); c.translate(x, y); c.rotate(rot || 0);
     var R = W / 2;
     function shell(l, r) { rr(c, -l / 2, -r, l, 2 * r, r); }
@@ -280,24 +285,26 @@
       gl.addColorStop(0, 'rgba(255,230,128,' + (.55 * glow).toFixed(3) + ')'); gl.addColorStop(1, 'rgba(255,230,128,0)');
       c.fillStyle = gl; c.beginPath(); c.arc(0, 0, L * .9, 0, TAU); c.fill(); c.restore();
     }
+    /* the outer membrane, and the narrow space inside it */
     shell(L, R);
-    var lg = c.createLinearGradient(0, -R, 0, R); lg.addColorStop(0, C.mito0); lg.addColorStop(1, C.mito1);
-    c.fillStyle = lg; c.fill(); c.strokeStyle = C.mitoLo; c.lineWidth = Math.max(.9, W * .055); c.stroke();
-    c.save(); shell(L - W * .22, R * .78); c.clip();
-    c.fillStyle = 'rgba(255,226,190,.75)'; c.fillRect(-L, -R, 2 * L, 2 * R);
-    c.strokeStyle = C.mitoLo; c.lineWidth = Math.max(.8, W * .05); c.lineJoin = 'round'; c.lineCap = 'round';
-    /* the cristae: even, rounded folds of the inner membrane, from each side in turn, none reaching the rounded ends */
-    var fw = W * .15, pitch = W * .33, span = L - W * .95, n = Math.max(2, Math.floor(span / pitch) + 1), inner = R * .78;
-    c.lineWidth = Math.max(.8, W * .05); c.lineJoin = 'round'; c.lineCap = 'round';
+    var lg = c.createLinearGradient(0, -R, 0, R); lg.addColorStop(0, '#D9966F'); lg.addColorStop(1, '#B46B49');
+    c.fillStyle = lg; c.fill(); c.strokeStyle = '#6E3A26'; c.lineWidth = Math.max(.6, W * .024); c.stroke();
+    /* the inside, within the folded inner membrane */
+    var li = L - W * .15, ri = R * .84;
+    c.save(); shell(li, ri);
+    var mg = c.createLinearGradient(0, -ri, 0, ri); mg.addColorStop(0, '#FBE6CF'); mg.addColorStop(.55, '#F4D2AE'); mg.addColorStop(1, '#E8BC94');
+    c.fillStyle = mg; c.fill(); c.clip();
+    /* the cristae: many narrow folds from each side in turn, of slightly different depths */
+    var pitch = Math.max(3.6, W * .21), span = li - W * .42, n = Math.max(3, Math.floor(span / pitch) + 1), fw = pitch * .42;
+    c.lineWidth = Math.max(.5, W * .018); c.strokeStyle = 'rgba(128,70,44,.9)'; c.fillStyle = 'rgba(205,140,102,.62)'; c.lineJoin = 'round';
     for (var i = 0; i < n; i++) {
-      var xx = -span / 2 + i * span / (n - 1 || 1), up = i % 2 ? 1 : -1, base = up * inner * 1.12, tip = -up * inner * .14;
-      c.beginPath(); c.moveTo(xx - fw / 2, base); c.lineTo(xx - fw / 2, tip);
-      c.quadraticCurveTo(xx, tip - up * fw * 1.05, xx + fw / 2, tip);
-      c.lineTo(xx + fw / 2, base);
-      c.fillStyle = 'rgba(232,160,100,.5)'; c.fill(); c.stroke();
+      var xx = -span / 2 + i * span / (n - 1), up = i % 2 ? 1 : -1, base = up * ri * 1.06, tip = base - up * ri * (1.22 + .3 * Math.sin(i * 2.4)), lean = fw * .35 * Math.sin(i * 1.7);
+      c.beginPath(); c.moveTo(xx - fw / 2, base); c.lineTo(xx - fw / 2 + lean, tip);
+      c.quadraticCurveTo(xx + lean, tip - up * fw * .9, xx + fw / 2 + lean, tip); c.lineTo(xx + fw / 2, base);
+      c.fill(); c.stroke();
     }
     c.restore();
-    shell(L - W * .22, R * .78); c.strokeStyle = C.mitoLo; c.lineWidth = Math.max(.8, W * .045); c.stroke();
+    shell(li, ri); c.strokeStyle = 'rgba(128,70,44,.95)'; c.lineWidth = Math.max(.5, W * .02); c.stroke();
     c.restore();
   }
 

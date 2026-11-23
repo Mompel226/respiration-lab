@@ -3,9 +3,9 @@
 
    RsArt.body     one real body (the Human Body Hub's BodyParts3D model, rendered part by part with one camera by
                   tools/body_layers.mjs), with a part that can glow and routes that follow its vessels
-   RsArt.fibre    a piece of a muscle cell: myofibrils with their bands, rows of mitochondria between them, a nucleus at the edge
+   RsArt.fibre    one muscle cell: its membrane, the parts that contract with their bands, mitochondria along them, nuclei at the edge
    RsArt.spark    the energy released by respiration: one gold star, the same in every picture
-   RsArt.enzyme   an enzyme, a teal shape with an active site
+   RsArt.enzyme   an enzyme: a lumpy folded protein with an active site
    RsArt.flask, RsArt.tube   the two benches' glass
    Molecules come from js/rs-draw.js (the Membrane Lab's), with lactic acid and ethanol added.
    ============================================================ */
@@ -102,18 +102,18 @@
   /* ROUTES: written by tools/trace-routes.py, along the middle of the model's vessels and airways. Do not edit by hand. */
   var EXTRA = {"brachio":[[428,384],[418,378],[406,370]],"artL":[[327,362],[304,368],[280,382],[258,406],[240,438],[229,474],[224,512],[218,552],[210,592],[200,628]],"veinL":[[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400]],"artR":[[519,365],[540,370],[564,384],[586,408],[603,440],[613,476],[618,514],[624,554],[632,594],[642,630]],"veinR":[[650,628],[640,592],[631,552],[625,512],[620,472],[610,436],[593,402],[570,380],[544,372],[510,376],[470,382],[432,388],[402,400]],"hepA":[[431,652],[414,648],[396,642],[378,634]],"hepV":[[372,606],[384,590],[396,574],[402,562]],"portal":[[452,846],[446,806],[436,766],[422,726],[404,690],[386,660],[372,632]]};
   var R = {
-    glucose: route([[452,846],[446,806],[436,766],[422,726],[404,690],[386,660],[372,632],[372,612],[372,606],[384,590],[396,574],[402,562],[402,540],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[428,384],[418,378],[406,370],[397,355],[377,348],[363,350],[327,362],[304,368],[280,382],[258,406],[240,438],[229,474],[224,512],[218,552],[210,592],[200,628]]),
-    oxygen: route([[426,172],[423,204],[421,248],[421,292],[419,300],[418,407],[397,432],[393,447],[383,465],[368,483],[365,497],[355,507],[333,520],[327,532],[296,570],[285,575],[281,575],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[428,384],[418,378],[406,370],[397,355],[377,348],[363,350],[327,362],[304,368],[280,382],[258,406],[240,438],[229,474],[224,512],[218,552],[210,592],[200,628]], {"lung":0.3553}),
-    co2: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[281,575],[285,575],[296,570],[327,532],[333,520],[355,507],[365,497],[368,483],[383,465],[393,447],[397,432],[418,407],[419,300],[421,292],[421,248],[423,204],[426,172]], {"lung":0.6524}),
-    lacticR: route([[650,628],[640,592],[631,552],[625,512],[620,472],[610,436],[593,402],[570,380],[544,372],[510,376],[470,382],[432,388],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
-    lacticL: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
-    lungToLiver: route([[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
+    glucose: route([[452,846],[446,806],[436,766],[422,726],[404,690],[386,660],[372,632],[372,612],[372,606],[384,590],[396,574],[402,562],[402,540],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[404,438],[379,450],[366,463],[360,477],[358,490],[351,496],[346,495],[332,480],[321,472],[317,471],[310,473],[310,477],[319,490],[324,500],[350,504],[363,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[428,384],[418,378],[406,370],[397,355],[377,348],[363,350],[327,362],[304,368],[280,382],[258,406],[240,438],[229,474],[224,512],[218,552],[210,592],[200,628]]),
+    oxygen: route([[426,172],[423,204],[421,248],[421,292],[419,300],[419,406],[397,433],[392,449],[383,465],[368,484],[366,496],[358,504],[353,505],[340,492],[333,490],[320,475],[308,475],[310,477],[319,490],[324,500],[350,504],[363,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[428,384],[418,378],[406,370],[397,355],[377,348],[363,350],[327,362],[304,368],[280,382],[258,406],[240,438],[229,474],[224,512],[218,552],[210,592],[200,628]], {"lung":0.3443}),
+    co2: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[404,438],[379,450],[366,463],[360,477],[358,490],[351,496],[346,495],[332,480],[321,472],[317,471],[310,473],[308,475],[320,475],[333,490],[340,492],[353,505],[358,504],[366,496],[368,484],[383,465],[392,449],[397,433],[419,406],[419,300],[421,292],[421,248],[423,204],[426,172]], {"lung":0.6583}),
+    lacticR: route([[650,628],[640,592],[631,552],[625,512],[620,472],[610,436],[593,402],[570,380],[544,372],[510,376],[470,382],[432,388],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[404,438],[379,450],[366,463],[360,477],[358,490],[351,496],[346,495],[332,480],[321,472],[317,471],[310,473],[310,477],[319,490],[324,500],[350,504],[363,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
+    lacticL: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[404,438],[379,450],[366,463],[360,477],[358,490],[351,496],[346,495],[332,480],[321,472],[317,471],[310,473],[310,477],[319,490],[324,500],[350,504],[363,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
+    lungToLiver: route([[310,477],[319,490],[324,500],[350,504],[363,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
     sweat: route([[156,598],[136,592],[116,588],[96,590]]),
-    lungToLiverR: route([[563,531],[530,528],[497,502],[489,500],[476,491],[458,488],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
-    breath: route([[426,172],[423,204],[421,248],[421,292],[419,300],[418,407],[397,432],[393,447],[383,465],[368,483],[365,497],[355,507],[333,520],[327,532],[296,570],[285,575],[281,575]]),
-    breathR: route([[426,172],[423,204],[421,248],[421,292],[419,302],[419,402],[420,408],[450,441],[473,459],[487,478],[496,496],[520,519],[525,521],[557,522]]),
-    breathOut: route([[281,575],[285,575],[296,570],[327,532],[333,520],[355,507],[365,497],[368,483],[383,465],[393,447],[397,432],[418,407],[419,300],[421,292],[421,248],[423,204],[426,172]]),
-    urine: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[403,438],[382,448],[374,454],[365,465],[360,477],[358,488],[355,496],[337,510],[333,525],[299,569],[288,579],[281,580],[283,574],[308,541],[333,527],[353,505],[364,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,486],[433,538],[430,700],[472,700],[478,702]])
+    lungToLiverR: route([[528,451],[511,449],[504,452],[504,455],[509,463],[508,471],[502,481],[487,491],[480,492],[458,488],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,485],[433,537],[431,652],[414,648],[396,642],[378,634]]),
+    breath: route([[426,172],[423,204],[421,248],[421,292],[419,300],[419,406],[397,433],[392,449],[383,465],[368,484],[366,496],[358,504],[353,505],[340,492],[333,490],[320,475],[308,475]]),
+    breathR: route([[426,172],[423,204],[421,248],[421,292],[419,302],[419,402],[420,408],[450,441],[469,455],[475,455],[484,451],[489,445],[496,433],[499,431],[512,431],[526,442]]),
+    breathOut: route([[308,475],[320,475],[333,490],[340,492],[353,505],[358,504],[366,496],[368,484],[383,465],[392,449],[397,433],[419,406],[419,300],[421,292],[421,248],[423,204],[426,172]]),
+    urine: route([[192,626],[203,590],[212,550],[217,510],[222,470],[232,434],[250,400],[274,378],[300,372],[330,376],[362,384],[388,392],[402,400],[402,436],[402,450],[398,492],[438,528],[436,486],[430,440],[425,438],[404,438],[379,450],[366,463],[360,477],[358,490],[351,496],[346,495],[332,480],[321,472],[317,471],[310,473],[310,477],[319,490],[324,500],[350,504],[363,501],[387,486],[412,487],[440,478],[476,522],[446,476],[440,452],[433,446],[432,441],[432,417],[438,392],[432,420],[432,447],[437,469],[437,486],[433,538],[430,700],[472,700],[478,702]])
   };
   /* END ROUTES */
 
@@ -128,18 +128,25 @@
     c.closePath(); c.fill();
     c.restore();
   }
-  /* an enzyme: a soft protein with a notch, its active site, facing `rot` */
+  /* an enzyme: a folded protein, lumpy like a real one, with an active site cut into it, facing `rot` */
   function enzyme(c, x, y, s, rot, a) {
     c.save(); c.translate(x, y); c.rotate(rot || 0); if (a != null) c.globalAlpha = a;
+    var gap = .36, n = 44;
     c.beginPath();
-    c.moveTo(s * .95, -s * .24);
-    c.bezierCurveTo(s * .7, -s * .86, -s * .55, -s * 1.04, -s * .98, -s * .24);
-    c.bezierCurveTo(-s * 1.2, s * .46, -s * .44, s * .98, s * .28, s * .86);
-    c.bezierCurveTo(s * .74, s * .78, s * 1.02, s * .5, s * .95, s * .22);
-    c.lineTo(s * .34, s * .12); c.quadraticCurveTo(s * .12, 0, s * .34, -s * .12);
-    c.closePath();
-    var lg = c.createLinearGradient(0, -s, 0, s); lg.addColorStop(0, '#E4F7A8'); lg.addColorStop(.55, '#A3D93F'); lg.addColorStop(1, '#5E8F16');
-    c.fillStyle = lg; c.fill(); c.strokeStyle = 'rgba(244,255,214,.9)'; c.lineWidth = Math.max(.8, s * .07); c.stroke();
+    for (var i = 0; i <= n; i++) {
+      var th = gap + (TAU - 2 * gap) * i / n, r = s * (1 + .075 * Math.sin(3 * th + .6) + .025 * Math.sin(5 * th + 1.2));
+      c[i ? 'lineTo' : 'moveTo'](r * Math.cos(th), r * Math.sin(th));
+    }
+    c.lineTo(s * .36, -s * .15); c.quadraticCurveTo(s * .12, 0, s * .36, s * .15); c.closePath();
+    var lg = c.createRadialGradient(-s * .3, -s * .4, s * .1, 0, 0, s * 1.15); lg.addColorStop(0, '#CFE2A4'); lg.addColorStop(.6, '#8DB45A'); lg.addColorStop(1, '#55762F');
+    c.fillStyle = lg; c.fill(); c.strokeStyle = 'rgba(40,62,22,.9)'; c.lineWidth = Math.max(.7, s * .045); c.stroke();
+    /* the coils of its chain */
+    c.strokeStyle = 'rgba(244,252,222,.42)'; c.lineWidth = Math.max(.7, s * .06); c.lineCap = 'round';
+    [[-.55, -.36], [-.62, .22], [-.08, .56], [-.14, -.62]].forEach(function (q, j) {
+      c.beginPath();
+      for (var k = 0; k <= 8; k++) { var px = s * (q[0] + k * .05), py = s * (q[1] + Math.sin(k * 1.5 + j) * .055); c[k ? 'lineTo' : 'moveTo'](px, py); }
+      c.stroke();
+    });
     c.restore();
   }
   /* the smaller molecule that glucose is split into: half of the glucose ring, in the ring's own stroke (pyruvate at IB).
@@ -170,45 +177,92 @@
     c.setLineDash([5, 4]); c.beginPath(); c.arc(x, y, r, 0, TAU); c.stroke(); c.restore();
   }
 
-  /* ======================================================================= a piece of a muscle cell
-     x, y, w, h: the piece. k: 0 relaxed … 1 contracted (the bands move closer together; the piece does not change its place).
-     o: { glow (the mitochondria), seed }. Myofibrils run along it, with dark and light bands; rows of mitochondria lie between them;
-     the nucleus lies at the edge, as it does in a muscle fibre. */
-  function fibre(c, x, y, w, h, k, o) {
-    o = o || {};
-    c.save();
-    D.rr(c, x, y, w, h, 14); c.clip();
-    var bg = c.createLinearGradient(0, y, 0, y + h); bg.addColorStop(0, '#E9D7BE'); bg.addColorStop(1, '#D8BE9E'); c.fillStyle = bg; c.fillRect(x, y, w, h);
-    var rows = o.rows || 3, gap = h / (rows * 2 + 1), sp = lerp(38, 28, clamp(k || 0));
-    for (var r = 0; r < rows; r++) {
-      var fy = y + gap * (r * 2 + 1), fh = gap;
-      var lg = c.createLinearGradient(0, fy, 0, fy + fh); lg.addColorStop(0, '#C25A4C'); lg.addColorStop(.5, '#D97566'); lg.addColorStop(1, '#A94A40');
-      c.fillStyle = lg; c.fillRect(x, fy, w, fh);
-      /* the bands of a sarcomere, drawn from the middle of the piece, so contraction moves them towards the middle */
-      var mid = x + w / 2;
-      c.fillStyle = 'rgba(92,28,26,.55)';
-      for (var n = -14; n <= 14; n++) { var bx = mid + n * sp; c.fillRect(bx - sp * .26, fy, sp * .52, fh); }
-      c.fillStyle = 'rgba(255,236,214,.65)';
-      for (var m = -14; m <= 14; m++) { var zx = mid + (m + .5) * sp; c.fillRect(zx - .8, fy, 1.6, fh); }
-    }
-    /* the mitochondria, in rows between the myofibrils */
-    var gl = o.glow == null ? 0 : o.glow, L = Math.min(46, w / 7), W = Math.max(10, gap * .74);
-    for (var a = 0; a <= rows; a++) {
-      var my = y + gap * (a * 2 + .5);
-      for (var b = 0; b < 7; b++) {
-        var mx = x + w * (b + .5 + (a % 2 ? .28 : -.1)) / 7;
-        if (o.nuc && Math.abs(mx - (x + w * .78)) < 40 && a === 0) continue;
-        D.mito(c, mx, my, L, W, 0, gl);
-      }
-    }
-    if (o.nuc) {
-      var nx = x + w * .78, ny = y + gap * .55, ng = c.createRadialGradient(nx - 8, ny - 5, 1, nx, ny, 30);
-      ng.addColorStop(0, D.C.nuc0); ng.addColorStop(1, D.C.nuc1);
-      c.fillStyle = ng; c.beginPath(); c.ellipse(nx, ny, 32, gap * .42, 0, 0, TAU); c.fill(); c.strokeStyle = D.C.nucLo; c.lineWidth = 1; c.stroke();
+  /* ======================================================================= one muscle cell
+     Seen along its length, as in a textbook: a membrane all round it, long parts that contract, with their dark and light bands,
+     mitochondria lying along them, and nuclei flat against the membrane.
+
+     myofibril: one of the parts that contract. k 0 relaxed … 1 contracted: the dark bands keep their width and come closer together,
+     as they really do. */
+  function myofibril(c, x, y, w, h, k) {
+    var q = clamp(k || 0), sp0 = Math.max(20, h * 1.75), sp = sp0 * (1 - .2 * q), dark = sp0 * .56, mid = x + w / 2, N = Math.ceil(w / sp / 2) + 1;
+    c.save(); D.rr(c, x, y, w, h, h * .24); c.clip();
+    var bg = c.createLinearGradient(0, y, 0, y + h); bg.addColorStop(0, '#F0CDBE'); bg.addColorStop(.5, '#E7B7A6'); bg.addColorStop(1, '#D79D8C');
+    c.fillStyle = bg; c.fillRect(x, y, w, h);
+    var dg = c.createLinearGradient(0, y, 0, y + h); dg.addColorStop(0, '#A84A44'); dg.addColorStop(.5, '#8E3635'); dg.addColorStop(1, '#6F2729');
+    for (var n = -N; n <= N; n++) {
+      var bx = mid + n * sp;
+      c.fillStyle = dg; c.fillRect(bx - dark / 2, y, dark, h);
+      c.fillStyle = 'rgba(255,220,204,.3)'; c.fillRect(bx - .6, y, 1.2, h);
+      c.fillStyle = 'rgba(64,20,22,.95)'; c.fillRect(bx + sp / 2 - .7, y, 1.4, h);
     }
     c.restore();
-    D.rr(c, x, y, w, h, 14); c.strokeStyle = D.C.memb; c.lineWidth = 1.6; c.stroke();
-    return { gap: gap, my: function (a) { return y + gap * (a * 2 + .5); } };
+    D.rr(c, x, y, w, h, h * .24); c.strokeStyle = 'rgba(70,26,24,.55)'; c.lineWidth = .8; c.stroke();
+  }
+  /* x, y, w, h: the cell. o: { rows (parts that contract), open (height of a clear band of cytoplasm in the middle, for a reaction),
+     nuc, glow (the mitochondria), dim (they take no part), shorten (the whole cell shortens with k) }.
+     Returns where everything is, so that names and energy land on the real parts. */
+  function fibre(c, x, y, w, h, k, o) {
+    o = o || {};
+    var q = clamp(k || 0), sh = o.shorten ? 1 - .17 * q : 1, w1 = w * sh, h1 = h * (o.shorten ? 1 + .05 * q : 1), x1 = x + (w - w1) / 2, y1 = y + (h - h1) / 2;
+    var r = Math.min(h1 * .4, 42), rows = o.rows || 3, open = o.open || 0, gaps = open ? rows : rows + 1, pad = h1 * .035, u = (h1 - 2 * pad - open) / (gaps + rows * 1.5);
+    var out = { left: x1, right: x1 + w1, top: y1, bottom: y1 + h1, mitos: [], bands: [], nuclei: [], midY: y1 + h1 / 2 };
+    c.save();
+    D.rr(c, x1, y1, w1, h1, r);
+    var bg = c.createLinearGradient(0, y1, 0, y1 + h1); bg.addColorStop(0, '#EFE2CC'); bg.addColorStop(.5, '#E6D5BA'); bg.addColorStop(1, '#D5C0A1');
+    c.fillStyle = bg; c.fill(); c.clip();
+    var yy = y1 + pad, lanes = [];
+    for (var b = 0; b < rows; b++) {
+      lanes.push(yy + u / 2); yy += u;
+      myofibril(c, x1 - 6, yy, w1 + 12, u * 1.5, q); out.bands.push({ y: yy + u * .75, h: u * 1.5 });
+      yy += u * 1.5;
+      if (open && b === rows / 2 - 1) yy += open - u;   /* the clear band takes the place of one row of mitochondria */
+    }
+    lanes.push(yy + u / 2);
+    if (open) lanes = lanes.filter(function (ly) { return Math.abs(ly - out.midY) > open * .4; });
+    /* the nuclei lie flat against the membrane */
+    var nucs = o.nuc ? [[x1 + w1 * .3, lanes[0]], [x1 + w1 * .72, lanes[lanes.length - 1]]] : [], nw = Math.min(u * 2.4, w1 * .14);
+    /* the mitochondria lie along the parts that contract, in different lengths */
+    var W = u * .78, dim = o.dim || 0;
+    lanes.forEach(function (ly, row) {
+      var s = (row + 3) * 7919, px = x1 + (row % 2 ? r * .55 : r * .3);
+      function rnd() { s = (s * 16807) % 2147483647; return (s % 1000) / 1000; }
+      while (px < x1 + w1 - r * .35) {
+        var L = W * (2.1 + rnd() * 1.3) * (o.shorten ? (1 + sh) / 2 : 1), cx = px + L / 2;
+        if (cx + L / 2 > x1 + w1 - r * .25 - (row === 0 || row === lanes.length - 1 ? r * .25 : 0)) break;
+        var hit = nucs.some(function (m) { return Math.abs(m[1] - ly) < 1 && Math.abs(m[0] - cx) < nw + L / 2 + 2; });
+        if (!hit) {
+          if (dim) c.globalAlpha = 1 - dim;
+          D.mito(c, cx, ly + (rnd() - .5) * u * .08, L, W, (rnd() - .5) * .05, o.glow || 0);
+          if (dim) c.globalAlpha = 1;
+          out.mitos.push({ x: cx, y: ly, L: L, W: W, row: row });
+        }
+        px += L + W * (.28 + rnd() * .4);
+      }
+    });
+    nucs.forEach(function (m) {
+      var ng = c.createRadialGradient(m[0] - nw * .3, m[1] - u * .15, 1, m[0], m[1], nw); ng.addColorStop(0, '#B9A6DE'); ng.addColorStop(1, '#7259A8');
+      c.fillStyle = ng; c.beginPath(); c.ellipse(m[0], m[1], nw, u * .42, 0, 0, TAU); c.fill(); c.strokeStyle = 'rgba(48,32,92,.9)'; c.lineWidth = .9; c.stroke();
+      out.nuclei.push({ x: m[0], y: m[1] });
+    });
+    c.restore();
+    D.rr(c, x1, y1, w1, h1, r); c.strokeStyle = '#4F3D2C'; c.lineWidth = 1.5; c.stroke();
+    D.rr(c, x1 + 1.6, y1 + 1.6, w1 - 3.2, h1 - 3.2, Math.max(1, r - 1.6)); c.strokeStyle = 'rgba(255,248,232,.5)'; c.lineWidth = .8; c.stroke();
+    return out;
+  }
+  /* a magnified view in the corner of a picture, joined by a dashed line to the place it shows */
+  function panel(c, P, paint) {
+    c.save(); D.rr(c, P.x, P.y, P.w, P.h, 12); c.fillStyle = '#0C1A28'; c.fill();
+    c.save(); D.rr(c, P.x, P.y, P.w, P.h, 12); c.clip(); paint(); c.restore();
+    D.rr(c, P.x, P.y, P.w, P.h, 12); c.strokeStyle = 'rgba(255,244,196,.88)'; c.lineWidth = 1.6; c.stroke(); c.restore();
+  }
+  function callout(c, a, P) {
+    var bx = clamp((a[0] - P.x) / P.w) * P.w + P.x, by = clamp((a[1] - P.y) / P.h) * P.h + P.y;
+    c.save(); c.strokeStyle = 'rgba(255,244,196,.82)'; c.lineWidth = 1.4; c.setLineDash([5, 4]); c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(bx, by); c.stroke(); c.setLineDash([]);
+    c.fillStyle = 'rgba(255,244,196,.98)'; c.beginPath(); c.arc(a[0], a[1], 3.4, 0, TAU); c.fill(); c.restore();
+  }
+  /* cells and molecules are drawn far larger than they are, and not to one scale: said on the picture */
+  function scaleTag(c, W, y) {
+    c.save(); c.font = '500 11px Inter, sans-serif'; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillStyle = 'rgba(232,240,248,.72)'; c.fillText('not to scale', W - 10, y == null ? 13 : y); c.restore();
   }
 
   /* ======================================================================= the benches' glass */
@@ -285,5 +339,5 @@
     return lvl;
   }
 
-  global.RsArt = { Body: Body, onBody: onBody, layer: layer, R: R, EXTRA: EXTRA, route: route, rbc: rbc, spark: spark, enzyme: enzyme, half: half, ringAt: ringAt, fibre: fibre, flask: flask, thermometer: thermometer, tube: tube };
+  global.RsArt = { Body: Body, onBody: onBody, layer: layer, R: R, EXTRA: EXTRA, route: route, rbc: rbc, spark: spark, enzyme: enzyme, half: half, ringAt: ringAt, fibre: fibre, myofibril: myofibril, panel: panel, callout: callout, scaleTag: scaleTag, flask: flask, thermometer: thermometer, tube: tube };
 })(window);
