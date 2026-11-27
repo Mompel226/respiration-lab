@@ -203,13 +203,17 @@
       { t: 18, h: 'Much less energy', p: [['ig', 'Anaerobic respiration releases **much less energy per glucose molecule** than aerobic respiration, because the glucose is only partly broken down. The two bars compare the energy from one glucose molecule.'], ['ib', 'A net yield of 2 ATP, against about 30 for aerobic respiration (C1.2.5, HL C1.2.9).']] }
     ],
     make: function () {
-      var W = 560, H = 330, amb = 0, u = 44, cL = { x: 144, y: 152 }, cR = { x: 418, y: 152 }, MF = null;
+      var W = 560, H = 330, amb = 0, u = 44, cL = { x: 144, y: 206 }, cR = { x: 418, y: 152 }, MF = null, ZP = { x: 20, y: 146, w: 248, h: 120 };
       function up(t) { return -24 * ease(seg(t, 18, 19)); }
       /* oxygen runs short: three molecules arrive and are used, and no more come */
       function shortO2(c, q, t, sd) {
         /* from the cell's own outer edge to a mitochondrion, where the last of the oxygen is used */
         var E = sd < 0 ? [[-140, -86], [-140, 92], [-140, -40]] : [[138, -60], [136, 74], [136, 8]], M = [[66, -56], [-82, 48], [-78, -44]];
-        if (sd < 0 && MF && MF.mitos.length > 4) { var nM = MF.mitos.length; M = [MF.mitos[1], MF.mitos[nM - 2], MF.mitos[Math.floor(nM / 2)]].map(function (q2) { return [q2.x - q.x, q2.y - q.y]; }); }
+        /* in the muscle cell the oxygen comes in at its edge and reaches mitochondria between its myofibrils */
+        if (sd < 0 && MF && MF.mitos.length > 4) {
+          var nM = MF.mitos.length, pick = [MF.mitos[2], MF.mitos[Math.floor(nM / 2)], MF.mitos[nM - 6] || MF.mitos[nM - 1]];
+          E = pick.map(function (m2) { return [MF.left + 4 - q.x, m2.y - q.y]; }); M = pick.map(function (m2) { return [m2.x - q.x, m2.y - q.y]; });
+        }
         for (var i = 0; i < 3; i++) {
           var a = seg(t, .2 + i * .5, 1.4 + i * .5), f = 1 - seg(t, 2.6 + i * .5, 3.2 + i * .5);
           if (a <= 0 || f <= 0) continue;
@@ -218,8 +222,15 @@
       }
       function muscle(c, dy, t) {
         var k = t < 18 ? .5 - .5 * Math.cos(t * 3) : .2;
-        /* the clear band of cytoplasm in the middle of the cell is where the reaction happens; its mitochondria take no part */
-        MF = A.fibre(c, 12, 36 + dy, 264, 232, k * .5, { rows: 2, open: 104, nuc: true, glow: .28 * (1 - seg(t, 1.4, 4.4)), dim: .34 * seg(t, 1.4, 4.4) });
+        /* part of one muscle cell; its mitochondria take no part in what follows */
+        MF = A.fibre(c, 6, 28 + dy, 272, 98, k * .5, { rows: 3, glow: .28 * (1 - seg(t, 1.4, 4.4)), dim: .34 * seg(t, 1.4, 4.4), bg: '#132A40' });
+        /* the cytoplasm between two of its myofibrils, magnified more: there glucose is broken down */
+        var P = { x: ZP.x, y: ZP.y + dy, w: ZP.w, h: ZP.h };
+        A.callout(c, [150, MF.gaps[1]], P);
+        A.panel(c, P, function () {
+          c.fillStyle = '#3A3022'; c.fillRect(P.x, P.y, P.w, P.h);
+          A.myofibril(c, P.x - 6, P.y - 6, P.w + 12, 20, k * .5); A.myofibril(c, P.x - 6, P.y + P.h - 14, P.w + 12, 20, k * .5);
+        });
       }
       function yeast(c, dy, t) {
         var x = cR.x, y = cR.y + dy, rx = 126, ry = 112;
@@ -292,9 +303,9 @@
           return k;
         },
         labels: function (t) {
-          var dy = up(t), it = [{ id: 'm', text: 'muscle cell', x: 92, y: 37 + dy, side: 'T' }, { id: 'y', text: 'yeast cell', x: cR.x + 30, y: cR.y - 88 + dy, side: 'T' }];
+          var dy = up(t), it = [{ id: 'm', text: 'part of one muscle cell', x: 92, y: 29 + dy, side: 'T' }, { id: 'y', text: 'yeast cell', x: cR.x + 30, y: cR.y - 88 + dy, side: 'T' }];
           if (t < 5) it.push({ id: 'mi', text: 'mitochondrion', x: cR.x - 78, y: cR.y - 44 + dy, side: 'T' }, { id: 'nu', text: 'nucleus', x: cR.x + 74, y: cR.y + 44 + dy, side: 'B' });
-          if (t >= 5.4 && t < 12) it.push({ id: 'cy', text: 'cytoplasm', x: cL.x + 96, y: cL.y + 34 + dy, side: 'B' });
+          if (t >= 5.4 && t < 12) it.push({ id: 'cy', text: 'cytoplasm (magnified more)', x: ZP.x + ZP.w - 34, y: ZP.y + ZP.h - 22 + dy, side: 'B' });
           if (t >= 13 && t < 18) {
             it.push({ id: 'lac', text: 'lactic acid', x: cL.x - 34, y: cL.y + 8, side: 'B' });
             it.push({ id: 'alc', text: 'alcohol', x: cR.x - 34, y: cR.y + 6, side: 'B' });
@@ -480,11 +491,11 @@
         A.callout(c, B.to([640, 470]), P);
         A.panel(c, P, function () {
           var k = (.5 - .5 * Math.cos((t + amb) * 5.4)) * ex;
-          var F = A.fibre(c, P.x + 7, P.y + 11, P.w - 14, P.h - 22, k * .55, { rows: 2, open: 50, nuc: true, glow: .3 * ex });
+          var F = A.fibre(c, P.x, P.y + 10, P.w, P.h - 20, k * .55, { rows: 4, glow: .3 * ex, bg: '#0C1A28' });
           /* little oxygen arrives */
-          for (var i = 0; i < 2; i++) { var ph = ((t + amb) * .4 + i * .5) % 1, go = F.mitos[i ? F.mitos.length - 2 : 1]; if (go) mol(c, 'oxygen', [lerp(P.x + 4, go.x, ph), lerp(F.midY, go.y, ph)], i, 20, Math.sin(ph * Math.PI) * a); }
-          /* lactic acid forms in the clear cytoplasm */
-          for (var n = 0; n < 5; n++) { var f = seg(t, 5.6 + n * 1.5, 6.2 + n * 1.5); if (f > 0) mol(c, 'lactic', [P.x + 30 + n * 34 + wob(t + amb, n, 1.2), F.midY + (n % 2 ? 7 : -7) + wob(t + amb, n + 2, 1.2)], n, 30, f * a); }
+          for (var i = 0; i < 2; i++) { var ph = ((t + amb) * .4 + i * .5) % 1, go = F.mitos[i ? F.mitos.length - 8 : 3]; if (go) mol(c, 'oxygen', [lerp(P.x + 4, go.x, ph), lerp(go.y, go.y, ph)], i, 18, Math.sin(ph * Math.PI) * a); }
+          /* lactic acid forms in the cytoplasm between the myofibrils */
+          for (var n = 0; n < 5; n++) { var f = seg(t, 5.6 + n * 1.5, 6.2 + n * 1.5), gy = F.gaps[n % F.gaps.length]; if (f > 0) mol(c, 'lactic', [P.x + 30 + n * 34 + wob(t + amb, n, 1.2), gy + wob(t + amb, n + 2, .8)], n, 24, f * a); }
         });
         c.restore();
       }
@@ -514,7 +525,7 @@
         labels: function (t) {
           var it = [], mp = B.to([218, 430]), lp = B.to([304, 628]), hp = B.to([452, 500]), lg = B.to([300, 470]);
           it.push({ id: 'mus', text: 'muscles', x: mp[0], y: mp[1], side: 'T' });
-          if (t < 16.8) it.push({ id: 'cell', text: 'one muscle cell (magnified)', x: P.x + 90, y: P.y + 11, side: 'T' });
+          if (t < 16.8) it.push({ id: 'cell', text: 'part of one muscle cell (magnified)', x: P.x + 90, y: P.y + 11, side: 'T' });
           if (t >= 16) it.push({ id: 'liv', text: 'liver', x: lp[0], y: lp[1], side: 'B' });
           if (t >= 28.5 && t < 33) it.push({ id: 'lc', text: 'liver cell (magnified)', x: P.x + 110, y: P.y + 6, side: 'T' });
           if (t >= 17.2 && t < 27.5) { it.push({ id: 'ves', text: t < 22 ? 'vein (magnified)' : 'artery (magnified)', x: P.x + 132, y: P.y + 6, side: 'T' }); it.push({ id: 'pl', text: 'plasma', x: P.x + 34, y: P.y + P.h / 2 - 5, side: 'T' }); }
@@ -525,4 +536,35 @@
       };
     }
   }));
+})(window);
+
+/* ---------- the chart of one question in station `seeds`: a rate, with no time given ----------
+   Daniel, 23 Nov 2026: pupils read a rate as a total. The bars are in cm³ per hour, so the chart can say which seeds release
+   carbon dioxide faster and cannot say which release more. The page's colours, so it reads in the bright and the dark version. */
+(function (global) {
+  'use strict';
+  var L = global.CircLearn;
+  if (!L) return;
+  L.diagram('seedrate', function () {
+    var left = 86, right = 386, top = 14, base = 262, vMax = 6, bars = [['R', 2], ['S', 5]], w = 92, s = '', v;
+    var ink = 'fill:var(--ink)', soft = 'fill:var(--muted)';
+    function y(n) { return base - n * (base - top) / vMax; }
+    for (v = 0; v <= vMax; v++) {
+      s += '<line x1="' + left + '" x2="' + right + '" y1="' + y(v) + '" y2="' + y(v) + '" style="stroke:var(--line);stroke-width:1"/>' +
+           '<text x="' + (left - 9) + '" y="' + (y(v) + 5) + '" text-anchor="end" font-size="15" style="' + soft + '">' + v + '</text>';
+    }
+    bars.forEach(function (b, i) {
+      var cx = left + (right - left) * (i + .5) / bars.length;
+      s += '<rect x="' + (cx - w / 2) + '" y="' + y(b[1]) + '" width="' + w + '" height="' + (base - y(b[1])) + '" style="fill:var(--accent-tint);stroke:var(--accent);stroke-width:1.6"/>' +
+           '<text x="' + cx + '" y="' + (base + 22) + '" text-anchor="middle" font-size="15" font-weight="600" style="' + ink + '">' + b[0] + '</text>';
+    });
+    s += '<path d="M' + left + ' ' + top + 'V' + base + 'H' + right + '" fill="none" style="stroke:var(--ink);stroke-width:1.6"/>' +
+         '<text x="' + ((left + right) / 2) + '" y="' + (base + 46) + '" text-anchor="middle" font-size="15" font-weight="600" style="' + ink + '">Type of seed</text>' +
+         '<text transform="translate(24 ' + ((top + base) / 2) + ') rotate(-90)" text-anchor="middle" font-size="15" font-weight="600" style="' + ink + '">' +
+           '<tspan x="0" dy="-4">Rate of carbon dioxide release</tspan><tspan x="0" dy="19">/ cm³ per hour</tspan></text>' +
+         ['Figure 1. Bar chart showing the effect of the', 'type of seed (R and S) on the rate of carbon', 'dioxide release.'].map(function (t, i) {
+           return '<text x="10" y="' + (base + 80 + i * 20) + '" font-size="15" font-style="italic" style="' + ink + '">' + t + '</text>';
+         }).join('');
+    return '<svg viewBox="0 0 400 ' + (base + 130) + '" role="img" aria-label="Bar chart of the rate of carbon dioxide release by two types of germinating seed: seeds R 2 cm³ per hour, seeds S 5 cm³ per hour.">' + s + '</svg>';
+  });
 })(window);

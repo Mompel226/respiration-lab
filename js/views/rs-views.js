@@ -29,14 +29,16 @@
   /* ======================================================================= 1. What respiration is */
   Views.add('bodycell', function (spec, ctx) {
     var W = 600, H = 620, t = 0, mode = 'resp', foc = null;
-    var WIN = { x0: 70, y0: 8, w: 700, h: 900 }, ROOM = { x0: 70, y0: -36, w: 700, h: 944 }, B = A.Body(WIN, 420, H), IN = { x: 324, y: 14, w: 264, h: 196 }, CELL = null;
+    var WIN = { x0: 70, y0: 8, w: 700, h: 900 }, ROOM = { x0: 70, y0: -36, w: 700, h: 944 }, B = A.Body(WIN, 420, H), IN = { x: 290, y: 14, w: 300, h: 200 }, CELL = null;
     var SP = [[214, 540], [190, 470], [236, 610], [634, 520], [660, 600], [330, 860], [520, 880], [360, 820], [500, 800], [400, 640], [360, 620], [430, 820], [460, 760], [440, 490], [420, 96], [395, 120], [450, 110]].map(function (q, i) { return { x: q[0], y: q[1], p: i * .37 }; });
-    /* the close-up: one whole muscle cell, joined to the place in the arm it comes from */
+    /* the close-up: part of one long muscle cell, joined to the place in the arm it comes from */
     function inset(c, g) {
       A.callout(c, B.to([640, 470]), IN);
       A.panel(c, IN, function () {
         var k = .5 - .5 * Math.cos(t * 1.8), cx = IN.x + IN.w / 2, cy = IN.y + IN.h / 2;
-        CELL = A.fibre(c, IN.x + 9, IN.y + 14, IN.w - 18, IN.h - 28, foc === 'enzymes' ? 0 : k * .7, { glow: g, rows: 2, nuc: true });
+        /* what the close-up is, said on it */
+        c.fillStyle = 'rgba(255,244,196,.95)'; c.font = '600 13px Inter, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('part of one long muscle cell (magnified)', cx, IN.y + 14); c.textAlign = 'left';
+        CELL = A.fibre(c, IN.x, IN.y + 28, IN.w, IN.h - 36, foc === 'enzymes' ? 0 : k * .7, { glow: g, rows: 4, bg: '#0C1A28' });
         if (foc === 'enzymes') {
           c.fillStyle = 'rgba(14,29,46,.66)'; c.fillRect(IN.x, IN.y, IN.w, IN.h);
           /* one small reaction after another, each with its own enzyme */
@@ -44,13 +46,13 @@
           var u = (t * .3) % 1;
           D.mol(c, 'glucose', cx - 104 + u * 208, cy, u * 4, 62, 1);
         }
-        if (foc === 'reactions') CELL.mitos.forEach(function (m, n) { var ph = (t * .55 + n / 7) % 1; A.spark(c, m.x, m.y - ph * 12, 5, Math.sin(ph * Math.PI)); });
+        if (foc === 'reactions') CELL.mitos.forEach(function (m, n) { if (n % 3) return; var ph = (t * .55 + n / 11) % 1; A.spark(c, m.x, m.y - ph * 10, 5, Math.sin(ph * Math.PI)); });
       });
     }
     var scene = {
       W: W, H: H,
       /* the picture takes the shape of its column: the body on the left, the close-up on the right */
-      fit: function (a) { W = a ? Math.max(560, Math.round(H * a)) : 600; scene.W = W; B = A.Body(a ? ROOM : WIN, a ? Math.min(W - 150, 470) : 420, H); IN.x = W - 276; IN.y = a ? 66 : 14; },
+      fit: function (a) { W = a ? Math.max(560, Math.round(H * a)) : 600; scene.W = W; B = A.Body(a ? ROOM : WIN, a ? Math.min(W - 150, 470) : 420, H); IN.x = W - 312; IN.y = a ? 66 : 14; },
       tick: function (dt) { t += dt; },
       draw: function (c) {
         sc(c, W, H, '#11283C', '#0A1826', function () {
@@ -82,9 +84,9 @@
           var l = B.to([548, 470]), nn = B.to([426, 172]);
           it.push({ id: 'lu', text: 'lungs', x: l[0], y: l[1], side: 'T' }, { id: 'air', text: 'air', x: nn[0], y: nn[1], side: 'T' });
         } else {
-          var mc = CELL && CELL.mitos.filter(function (q) { return q.row === 1 && q.x > IN.x + IN.w * .6; })[0];
-          it.push({ id: 'cell', text: 'one muscle cell (magnified)', x: IN.x + 70, y: IN.y + 15, side: 'T' });
-          it.push({ id: 'mit', text: foc === 'enzymes' ? 'enzymes' : 'mitochondria', x: foc === 'enzymes' ? IN.x + IN.w / 2 + 72 : mc ? mc.x : IN.x + 190, y: foc === 'enzymes' ? IN.y + IN.h / 2 - 16 : mc ? mc.y : IN.y + 98, side: 'T' });
+          var nu = CELL && CELL.nuclei[0], mc = CELL && CELL.mitos.filter(function (q) { return q.kind === 'edge' && q.y < IN.y + IN.h / 2; }).sort(function (a, b) { return Math.abs(a.x - IN.x - IN.w * .6) - Math.abs(b.x - IN.x - IN.w * .6); })[0];
+          if (foc !== 'enzymes') it.push({ id: 'nuc', text: 'nuclei (one muscle cell has many)', x: nu ? nu.x : IN.x + 64, y: nu ? nu.y : IN.y + 22, side: 'T' });
+          it.push({ id: 'mit', text: foc === 'enzymes' ? 'enzymes' : 'mitochondria', x: foc === 'enzymes' ? IN.x + IN.w / 2 + 72 : mc ? mc.x : IN.x + 210, y: foc === 'enzymes' ? IN.y + IN.h / 2 - 16 : mc ? mc.y : IN.y + 22, side: 'T' });
         }
         return it;
       }
@@ -126,7 +128,7 @@
       /* the cell's own mitochondria release energy into the parts beside them; then those parts, and the whole cell, shorten */
       muscle: function (c) {
         var ph = (t * .3) % 1, rel = seg(ph, .02, .32), k = ease(seg(ph, .3, .46)) * (1 - ease(seg(ph, .74, .94)));
-        MUSCLE = A.fibre(c, 40, 62, W - 80, H - 124, k, { rows: 3, nuc: true, shorten: true, glow: .5 * Math.sin(rel * Math.PI) });
+        MUSCLE = A.fibre(c, 20, 74, W - 40, H - 148, k, { rows: 5, shorten: true, glow: .5 * Math.sin(rel * Math.PI), bg: '#10202F' });
         if (rel > 0 && rel < 1) MUSCLE.mitos.forEach(function (m, i) {
           if (i % 2) return;
           var near = MUSCLE.bands.reduce(function (a, q) { return Math.abs(q.y - m.y) < Math.abs(a.y - m.y) ? q : a; });
@@ -244,8 +246,8 @@
       draw: function (c) { sc(c, W, H, '#142A40', '#0E1D2E', function () { feed(c); U[cur](c); }); },
       labels: function () {
         if (cur === 'muscle') {
-          var F = MUSCLE || { top: 62, bottom: 338, mitos: [{ x: 420, y: 120, row: 0 }], bands: [{ y: 200 }, { y: 200 }, { y: 280 }] }, mm = F.mitos.filter(function (q) { return q.row === 1 && q.x > 330; })[0] || F.mitos[0];
-          return [{ id: 'mcell', text: 'one muscle cell', x: 170, y: F.top + 2, side: 'T' }, { id: 'mmit', text: 'mitochondria', x: mm.x, y: mm.y, side: 'T' }, { id: 'mpart', text: 'parts that contract', x: 300, y: F.bands[F.bands.length - 1].y, side: 'B' }];
+          var F = MUSCLE || { top: 74, bottom: 326, mitos: [{ x: 420, y: 90, kind: 'edge' }], bands: [{ y: 200 }, { y: 280 }] }, mm = F.mitos.filter(function (q) { return q.kind === 'edge' && q.y < 200; }).sort(function (a, b) { return Math.abs(a.x - 400) - Math.abs(b.x - 400); })[0] || F.mitos[0];
+          return [{ id: 'mcell', text: 'part of one muscle cell', x: 120, y: F.top + 1, side: 'T' }, { id: 'mmit', text: 'mitochondria', x: mm.x, y: mm.y, side: 'T' }, { id: 'mpart', text: 'parts that contract', x: 300, y: F.bands[F.bands.length - 1].y, side: 'B' }];
         }
         var it = [{ id: 'mito', text: 'mitochondrion', x: MX + 22, y: cur === 'transport' ? MY + 26 : MY - 30, side: cur === 'transport' ? 'B' : 'T' }];   /* active transport needs the top band for its own names */
         var nm = { muscle: [], protein: [['ribosome', 400, 186, 'T'], ['chain of amino acids (a protein)', Math.max(300, 394 - 234 * Math.min(.999, ((t * .24) % 1) / .9)), 212, 'B']], division: null, transport: [['protein carrier', 392, 172, 'T'], ['lower concentration', 226, 110, 'T'], ['higher concentration', 524, 140, 'T'], ['cell membrane', 392, 336, 'B']], growth: [['new cells', 222 + (1 + Math.floor(Math.min(.999, ((t * .12) % 1) / .84) * 6)) * 58, 186, 'T']], impulse: [['neurone', 262, 200, 'B'], ['nerve impulse', lerp(264, 566, (t * .42) % 1), 200, 'T']], heat: [['heat released', 520, 110, 'T']] }[cur];
@@ -596,10 +598,17 @@
             return;
           }
           if (mode === 'where') {
-            WHERE = A.fibre(c, 26, 34, W - 52, H - 68, 0, { rows: 2, open: 124, nuc: true, glow: 0, dim: .28 });
-            D.mol(c, 'glucose', W / 2 - 84, H / 2 + bob(1), .2, 74);
-            D.arrow(c, W / 2 - 34, H / 2, W / 2 + 18, H / 2, 7, '#FFF3C4', { head: 13, headW: 10 });
-            D.mol(c, 'lactic', W / 2 + 52, H / 2 - 8 + bob(2), 0, 80); D.mol(c, 'lactic', W / 2 + 104, H / 2 + 8 + bob(3), .6, 80);
+            /* part of one muscle cell; the space between two of its myofibrils, magnified more, is where glucose is broken down */
+            WHERE = A.fibre(c, 0, 24, W, 118, 0, { rows: 3, glow: 0, dim: .28, bg: '#132A40' });
+            var P7 = { x: 70, y: 176, w: 460, h: 176 }, py = P7.y + P7.h / 2;
+            A.callout(c, [W / 2 + 40, WHERE.gaps[1]], P7);
+            A.panel(c, P7, function () {
+              c.fillStyle = '#3A3022'; c.fillRect(P7.x, P7.y, P7.w, P7.h);
+              A.myofibril(c, P7.x - 6, P7.y - 6, P7.w + 12, 26, 0); A.myofibril(c, P7.x - 6, P7.y + P7.h - 20, P7.w + 12, 26, 0);
+              D.mol(c, 'glucose', W / 2 - 84, py + bob(1), .2, 74);
+              D.arrow(c, W / 2 - 34, py, W / 2 + 18, py, 7, '#FFF3C4', { head: 13, headW: 10 });
+              D.mol(c, 'lactic', W / 2 + 52, py - 8 + bob(2), 0, 80); D.mol(c, 'lactic', W / 2 + 104, py + 8 + bob(3), .6, 80);
+            });
             return;
           }
           var yeast = mode === 'yeast' || mode === 'balanced';
@@ -617,7 +626,7 @@
       labels: function () {
         var y = H / 2 + 36;
         if (mode === 'energy') return [];
-        if (mode === 'where') { var wm = WHERE && WHERE.mitos[2]; return [{ id: 'c', text: 'cytoplasm of a muscle cell', x: W / 2 - 150, y: H / 2 + 44, side: 'B' }, { id: 'm', text: 'mitochondrion', x: wm ? wm.x : 120, y: wm ? wm.y : 60, side: 'T' }]; }
+        if (mode === 'where') { var wm = WHERE && WHERE.mitos.filter(function (q) { return q.kind === 'edge' && q.y < 80; })[1]; return [{ id: 'p', text: 'part of one muscle cell', x: 90, y: 25, side: 'T' }, { id: 'm', text: 'mitochondria', x: wm ? wm.x : 140, y: wm ? wm.y : 34, side: 'T' }, { id: 'c', text: 'cytoplasm (magnified more)', x: 150, y: 290, side: 'B' }]; }
         if (mode === 'muscle') return [{ id: 'g', text: 'glucose', x: 58, y: H / 2 + 28, side: 'B' }, { id: 'l', text: 'lactic acid', x: 340, y: y, side: 'B' }];
         return [{ id: 'g', text: 'glucose', x: 58, y: H / 2 + 28, side: 'B' }, { id: 'e', text: 'alcohol (ethanol)', x: 318, y: y, side: 'B' }, { id: 'c', text: 'carbon dioxide', x: 470, y: y, side: 'B' }];
       },

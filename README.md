@@ -7,7 +7,7 @@
 [![Open the lab](https://img.shields.io/badge/▶_Open_the_lab-0969DA?style=for-the-badge&logoColor=white)](https://nlcsbiology.com/respiration-lab/)
 
 ![9 stations](https://img.shields.io/badge/9-stations-0C6E63)
-![77 questions](https://img.shields.io/badge/77-questions-8A5A0E)
+![79 questions](https://img.shields.io/badge/79-questions-8A5A0E)
 ![Marks itself](https://img.shields.io/badge/questions-mark_themselves-0B6A8C)
 ![No sign-up](https://img.shields.io/badge/students-no_sign--up_needed-6FA287)
 
@@ -28,7 +28,7 @@ the questions say right or wrong, never the answer.
 |  |  |
 |---|---|
 | ⚡ **9 stations** | what respiration is · the uses of energy · aerobic respiration · from food and air to the cell · seeds that respire · temperature and yeast · anaerobic respiration · the oxygen debt · aerobic and anaerobic |
-| ✍️ **77 questions** | fill the gaps · multiple choice · put in order · match up · sort into groups · tick a grid · drag the words |
+| ✍️ **79 questions** | fill the gaps · multiple choice · put in order · match up · sort into groups · tick a grid · drag the words |
 | 🧍 **One real body** | a body from medical scans: follow glucose, oxygen, carbon dioxide and water along their routes |
 | 🔋 **Seven uses of energy** | a moving picture for each use, fed by a mitochondrion |
 | ⚛️ **Count the atoms** | the atoms of the balanced equation come apart and join again, the same number on each side |

@@ -275,7 +275,7 @@
 
   /* ---------- a mitochondrion: two membranes, the inner one folded into cristae ---------- */
   function mito(c, x, y, L, W, rot, glow) {
-    L = Math.max(L, W * 2);                                    /* a mitochondrion is long: it is never drawn as a coin */
+    L = Math.max(L, W * 1.6);                                  /* a mitochondrion is never drawn as a coin */
     c.save(); c.translate(x, y); c.rotate(rot || 0);
     var R = W / 2;
     function shell(l, r) { rr(c, -l / 2, -r, l, 2 * r, r); }

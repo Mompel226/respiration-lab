@@ -177,76 +177,91 @@
     c.setLineDash([5, 4]); c.beginPath(); c.arc(x, y, r, 0, TAU); c.stroke(); c.restore();
   }
 
-  /* ======================================================================= one muscle cell
-     Seen along its length, as in a textbook: a membrane all round it, long parts that contract, with their dark and light bands,
-     mitochondria lying along them, and nuclei flat against the membrane.
+  /* ======================================================================= one muscle cell (a skeletal muscle fibre)
+     Checked against the sources (Daniel, 27 Nov 2026: "Why are there 2 nuclei? ... Is that inside a muscle cell, or are actually muscle cells
+     joined together?"):
+     - a muscle cell is very long (up to 30 cm, OpenStax A&P 2e 10.2), so a picture shows PART of one cell: its membrane runs along both
+       sides and it continues past both ends, which fade;
+     - it has many nuclei, because it forms from many cells that join (myoblasts fuse); they lie flat, just under the membrane;
+     - its stripes are bands inside its myofibrils (the parts that contract), lined up across the cell: they are not cells joined together;
+     - between the myofibrils, slender mitochondria lie in pairs, one on each side of each Z line (Ogata and Yamasaki; PMC2740713);
+       rounder ones cluster under the membrane, beside the nuclei.
 
      myofibril: one of the parts that contract. k 0 relaxed … 1 contracted: the dark bands keep their width and come closer together,
-     as they really do. */
-  function myofibril(c, x, y, w, h, k) {
-    var q = clamp(k || 0), sp0 = Math.max(20, h * 1.75), sp = sp0 * (1 - .2 * q), dark = sp0 * .56, mid = x + w / 2, N = Math.ceil(w / sp / 2) + 1;
-    c.save(); D.rr(c, x, y, w, h, h * .24); c.clip();
+     as they really do. `mid` keeps the bands of every myofibril of a cell in line. */
+  function myofibril(c, x, y, w, h, k, mid) {
+    var q = clamp(k || 0), sp0 = Math.max(18, h * 2.1), sp = sp0 * (1 - .2 * q), dark = sp0 * .56, m = mid == null ? x + w / 2 : mid, N = Math.ceil(w / sp / 2) + 2, zs = [];
+    c.save(); D.rr(c, x, y, w, h, h * .3); c.clip();
     var bg = c.createLinearGradient(0, y, 0, y + h); bg.addColorStop(0, '#F0CDBE'); bg.addColorStop(.5, '#E7B7A6'); bg.addColorStop(1, '#D79D8C');
     c.fillStyle = bg; c.fillRect(x, y, w, h);
     var dg = c.createLinearGradient(0, y, 0, y + h); dg.addColorStop(0, '#A84A44'); dg.addColorStop(.5, '#8E3635'); dg.addColorStop(1, '#6F2729');
     for (var n = -N; n <= N; n++) {
-      var bx = mid + n * sp;
+      var bx = m + n * sp;
       c.fillStyle = dg; c.fillRect(bx - dark / 2, y, dark, h);
-      c.fillStyle = 'rgba(255,220,204,.3)'; c.fillRect(bx - .6, y, 1.2, h);
-      c.fillStyle = 'rgba(64,20,22,.95)'; c.fillRect(bx + sp / 2 - .7, y, 1.4, h);
+      c.fillStyle = 'rgba(255,220,204,.3)'; c.fillRect(bx - .5, y, 1, h);
+      c.fillStyle = 'rgba(64,20,22,.95)'; c.fillRect(bx + sp / 2 - .6, y, 1.2, h);
+      zs.push(bx + sp / 2);
     }
     c.restore();
-    D.rr(c, x, y, w, h, h * .24); c.strokeStyle = 'rgba(70,26,24,.55)'; c.lineWidth = .8; c.stroke();
+    D.rr(c, x, y, w, h, h * .3); c.strokeStyle = 'rgba(70,26,24,.5)'; c.lineWidth = .7; c.stroke();
+    return { sp: sp, zs: zs };
   }
-  /* x, y, w, h: the cell. o: { rows (parts that contract), open (height of a clear band of cytoplasm in the middle, for a reaction),
-     nuc, glow (the mitochondria), dim (they take no part), shorten (the whole cell shortens with k) }.
-     Returns where everything is, so that names and energy land on the real parts. */
+  /* x, y, w, h: the part of the cell in the picture. o: { rows (myofibrils), nuc (false: none), glow, dim (the mitochondria take no part),
+     shorten (the cell shortens with k), bg (the colour behind it, for the ends that fade) }. Returns where everything is. */
   function fibre(c, x, y, w, h, k, o) {
     o = o || {};
-    var q = clamp(k || 0), sh = o.shorten ? 1 - .17 * q : 1, w1 = w * sh, h1 = h * (o.shorten ? 1 + .05 * q : 1), x1 = x + (w - w1) / 2, y1 = y + (h - h1) / 2;
-    var r = Math.min(h1 * .4, 42), rows = o.rows || 3, open = o.open || 0, gaps = open ? rows : rows + 1, pad = h1 * .035, u = (h1 - 2 * pad - open) / (gaps + rows * 1.5);
-    var out = { left: x1, right: x1 + w1, top: y1, bottom: y1 + h1, mitos: [], bands: [], nuclei: [], midY: y1 + h1 / 2 };
-    c.save();
-    D.rr(c, x1, y1, w1, h1, r);
-    var bg = c.createLinearGradient(0, y1, 0, y1 + h1); bg.addColorStop(0, '#EFE2CC'); bg.addColorStop(.5, '#E6D5BA'); bg.addColorStop(1, '#D5C0A1');
-    c.fillStyle = bg; c.fill(); c.clip();
-    var yy = y1 + pad, lanes = [];
+    var q = clamp(k || 0), sh = o.shorten ? 1 - .17 * q : 1, w1 = w * sh, x1 = x + (w - w1) / 2, mid = x1 + w1 / 2;
+    var rows = o.rows || 4, E = Math.max(9, h * .14), inner = h - 2 * E, g = inner / (rows * 3.6 + rows - 1), m = g * 3.6, fade = Math.min(28, w1 * .1);
+    var out = { left: x1, right: x1 + w1, top: y, bottom: y + h, midY: y + h / 2, mitos: [], bands: [], gaps: [], nuclei: [], zs: [], ends: 'open' };
+    c.save(); c.beginPath(); c.rect(x1, y, w1, h); c.clip();
+    var cg = c.createLinearGradient(0, y, 0, y + h); cg.addColorStop(0, '#EFE2CC'); cg.addColorStop(.5, '#E6D5BA'); cg.addColorStop(1, '#D8C3A4');
+    c.fillStyle = cg; c.fillRect(x1, y, w1, h);
+    var yy = y + E, Z = [], sp = m * 2.1;
     for (var b = 0; b < rows; b++) {
-      lanes.push(yy + u / 2); yy += u;
-      myofibril(c, x1 - 6, yy, w1 + 12, u * 1.5, q); out.bands.push({ y: yy + u * .75, h: u * 1.5 });
-      yy += u * 1.5;
-      if (open && b === rows / 2 - 1) yy += open - u;   /* the clear band takes the place of one row of mitochondria */
+      var r = myofibril(c, x1 - 6, yy, w1 + 12, m, q, mid); Z = r.zs; sp = r.sp;
+      out.bands.push({ y: yy + m / 2, h: m }); yy += m;
+      if (b < rows - 1) { out.gaps.push(yy + g / 2); yy += g; }
     }
-    lanes.push(yy + u / 2);
-    if (open) lanes = lanes.filter(function (ly) { return Math.abs(ly - out.midY) > open * .4; });
-    /* the nuclei lie flat against the membrane */
-    var nucs = o.nuc ? [[x1 + w1 * .3, lanes[0]], [x1 + w1 * .72, lanes[lanes.length - 1]]] : [], nw = Math.min(u * 2.4, w1 * .14);
-    /* the mitochondria lie along the parts that contract, in different lengths */
-    var W = u * .78, dim = o.dim || 0;
-    lanes.forEach(function (ly, row) {
-      var s = (row + 3) * 7919, px = x1 + (row % 2 ? r * .55 : r * .3);
-      function rnd() { s = (s * 16807) % 2147483647; return (s % 1000) / 1000; }
-      while (px < x1 + w1 - r * .35) {
-        var L = W * (2.1 + rnd() * 1.3) * (o.shorten ? (1 + sh) / 2 : 1), cx = px + L / 2;
-        if (cx + L / 2 > x1 + w1 - r * .25 - (row === 0 || row === lanes.length - 1 ? r * .25 : 0)) break;
-        var hit = nucs.some(function (m) { return Math.abs(m[1] - ly) < 1 && Math.abs(m[0] - cx) < nw + L / 2 + 2; });
-        if (!hit) {
-          if (dim) c.globalAlpha = 1 - dim;
-          D.mito(c, cx, ly + (rnd() - .5) * u * .08, L, W, (rnd() - .5) * .05, o.glow || 0);
-          if (dim) c.globalAlpha = 1;
-          out.mitos.push({ x: cx, y: ly, L: L, W: W, row: row });
-        }
-        px += L + W * (.28 + rnd() * .4);
-      }
+    out.zs = Z.filter(function (z) { return z > x1 + 4 && z < x1 + w1 - 4; });
+    var dim = o.dim || 0, glow = o.glow || 0;
+    function M(cx, cy, L, W, kind, rot) {
+      if (dim) c.globalAlpha = 1 - dim;
+      D.mito(c, cx, cy, L, W, rot || 0, glow);
+      if (dim) c.globalAlpha = 1;
+      out.mitos.push({ x: cx, y: cy, L: L, W: W, kind: kind });
+    }
+    /* between the myofibrils: slender mitochondria in pairs, one on each side of each Z line */
+    var Wi = g * .95, Li = Math.max(Wi * 1.9, sp * .27);
+    out.gaps.forEach(function (gy, j) {
+      out.zs.forEach(function (z, n) {
+        [-1, 1].forEach(function (sd) {
+          var cx = z + sd * sp * .18, L = Li * (1 + .08 * Math.sin(n * 2.3 + j * 1.7 + sd));
+          if (cx - L / 2 > x1 + 2 && cx + L / 2 < x1 + w1 - 2) M(cx, gy, L, Wi, 'pair');
+        });
+      });
     });
-    nucs.forEach(function (m) {
-      var ng = c.createRadialGradient(m[0] - nw * .3, m[1] - u * .15, 1, m[0], m[1], nw); ng.addColorStop(0, '#B9A6DE'); ng.addColorStop(1, '#7259A8');
-      c.fillStyle = ng; c.beginPath(); c.ellipse(m[0], m[1], nw, u * .42, 0, 0, TAU); c.fill(); c.strokeStyle = 'rgba(48,32,92,.9)'; c.lineWidth = .9; c.stroke();
-      out.nuclei.push({ x: m[0], y: m[1] });
+    /* just under the membrane: the nuclei, flat, with rounder mitochondria in clusters beside them */
+    var nW = Math.min(E * 2.3, w1 * .12), nH = E * .34, nuc = o.nuc === false ? [] : [[.22, 0], [.76, 0], [.5, 1]];
+    nuc.forEach(function (p) {
+      var nx = x1 + w1 * p[0], ny = p[1] ? y + h - E * .5 : y + E * .5, L = E * 1.05, W = E * .62;
+      [-1, 1].forEach(function (sd) { M(nx + sd * (nW + L * .66), ny, L, W, 'edge', sd * .06); });
+      var ng = c.createRadialGradient(nx - nW * .3, ny - nH * .4, 1, nx, ny, nW); ng.addColorStop(0, '#B9A6DE'); ng.addColorStop(1, '#7259A8');
+      c.fillStyle = ng; c.beginPath(); c.ellipse(nx, ny, nW, nH, 0, 0, TAU); c.fill(); c.strokeStyle = 'rgba(48,32,92,.9)'; c.lineWidth = .8; c.stroke();
+      out.nuclei.push({ x: nx, y: ny, w: nW, h: nH });
     });
     c.restore();
-    D.rr(c, x1, y1, w1, h1, r); c.strokeStyle = '#4F3D2C'; c.lineWidth = 1.5; c.stroke();
-    D.rr(c, x1 + 1.6, y1 + 1.6, w1 - 3.2, h1 - 3.2, Math.max(1, r - 1.6)); c.strokeStyle = 'rgba(255,248,232,.5)'; c.lineWidth = .8; c.stroke();
+    /* the cell membrane along each side */
+    c.save(); c.strokeStyle = '#4F3D2C'; c.lineWidth = 1.6;
+    c.beginPath(); c.moveTo(x1, y + .8); c.lineTo(x1 + w1, y + .8); c.moveTo(x1, y + h - .8); c.lineTo(x1 + w1, y + h - .8); c.stroke();
+    c.strokeStyle = 'rgba(255,248,232,.55)'; c.lineWidth = .8;
+    c.beginPath(); c.moveTo(x1, y + 2.4); c.lineTo(x1 + w1, y + 2.4); c.moveTo(x1, y + h - 2.4); c.lineTo(x1 + w1, y + h - 2.4); c.stroke();
+    /* the cell runs on past both ends: they fade */
+    var bgc = o.bg || '#0C1A28';
+    [[x1 - 1, x1 + fade], [x1 + w1 + 1, x1 + w1 - fade]].forEach(function (e) {
+      var fg = c.createLinearGradient(e[0], 0, e[1], 0); fg.addColorStop(0, bgc); fg.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = fg; c.fillRect(Math.min(e[0], e[1]), y - 3, Math.abs(e[1] - e[0]) + 1, h + 6);
+    });
+    c.restore();
     return out;
   }
   /* a magnified view in the corner of a picture, joined by a dashed line to the place it shows */
