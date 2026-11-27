@@ -142,7 +142,7 @@
             var wa = seg(t, wAt(w), wAt(w) + .4);
             if (wa <= 0) continue;
             var wp = t < 24.6 ? O2m[w] : along(O2m[w], WAT[w], seg(t, 24.6 + w * .1, 27.6));
-            mol(c, 'water', [wp[0] + wob(amb, w + 2, 1.2), wp[1]], w, u * 1.05, wa);
+            mol(c, 'water', [wp[0] + wob(amb, w + 2, 1.2), wp[1]], w, u, wa);
             flash(c, O2m[w][0], O2m[w][1], t, wAt(w), 9);
           }
           A.scaleTag(c, W);
@@ -203,7 +203,7 @@
       { t: 18, h: 'Much less energy', p: [['ig', 'Anaerobic respiration releases **much less energy per glucose molecule** than aerobic respiration, because the glucose is only partly broken down. The two bars compare the energy from one glucose molecule.'], ['ib', 'A net yield of 2 ATP, against about 30 for aerobic respiration (C1.2.5, HL C1.2.9).']] }
     ],
     make: function () {
-      var W = 560, H = 330, amb = 0, u = 44, cL = { x: 144, y: 206 }, cR = { x: 418, y: 152 }, MF = null, ZP = { x: 20, y: 146, w: 248, h: 120 };
+      var W = 560, H = 330, amb = 0, u = 44, cL = { x: 144, y: 208 }, cR = { x: 418, y: 152 }, MF = null, ZP = { x: 20, y: 150, w: 248, h: 116 };
       function up(t) { return -24 * ease(seg(t, 18, 19)); }
       /* oxygen runs short: three molecules arrive and are used, and no more come */
       function shortO2(c, q, t, sd) {
@@ -223,10 +223,11 @@
       function muscle(c, dy, t) {
         var k = t < 18 ? .5 - .5 * Math.cos(t * 3) : .2;
         /* part of one muscle cell; its mitochondria take no part in what follows */
-        MF = A.fibre(c, 6, 28 + dy, 272, 98, k * .5, { rows: 3, glow: .28 * (1 - seg(t, 1.4, 4.4)), dim: .34 * seg(t, 1.4, 4.4), bg: '#132A40' });
+        /* the cell stays where it is, under its heading; only the magnified view moves up when the bars come */
+        MF = A.fibre(c, 6, 32, 272, 94, k * .5, { rows: 3, glow: .28 * (1 - seg(t, 1.4, 4.4)), dim: .34 * seg(t, 1.4, 4.4), bg: '#132A40' });
         /* the cytoplasm between two of its myofibrils, magnified more: there glucose is broken down */
         var P = { x: ZP.x, y: ZP.y + dy, w: ZP.w, h: ZP.h };
-        A.callout(c, [150, MF.gaps[1]], P);
+        A.callout(c, [150, MF.gaps[1]], { x: P.x, y: Math.max(P.y, MF.bottom + 2), w: P.w, h: P.h });
         A.panel(c, P, function () {
           c.fillStyle = '#3A3022'; c.fillRect(P.x, P.y, P.w, P.h);
           A.myofibril(c, P.x - 6, P.y - 6, P.w + 12, 20, k * .5); A.myofibril(c, P.x - 6, P.y + P.h - 14, P.w + 12, 20, k * .5);
@@ -253,14 +254,19 @@
         A.half(c, pa[0], pa[1], 0, RR, hAl, false); A.half(c, pb[0], pb[1], Math.PI, RR, hAl, true);
         flash(c, pa[0], pa[1] - 16, t, 7.3, 9); flash(c, pb[0], pb[1] - 16, t, 7.6, 9);
         if (ch > 0) {
-          if (!isYeast) { mol(c, 'lactic', [PA[0] + wob(amb, 1, 1.4), PA[1]], .4, u * 1.34, ch); mol(c, 'lactic', [PB[0] + wob(amb, 3, 1.4), PB[1]], -.3, u * 1.34, ch); }
-          else { mol(c, 'ethanol', [PA[0] + wob(amb, 1, 1.4), PA[1]], .4, u * 1.3, ch); mol(c, 'ethanol', [PB[0] + wob(amb, 3, 1.4), PB[1]], -.3, u * 1.3, ch); }
+          if (!isYeast) { mol(c, 'lactic', [PA[0] + wob(amb, 1, 1.4), PA[1]], .4, u, ch); mol(c, 'lactic', [PB[0] + wob(amb, 3, 1.4), PB[1]], -.3, u, ch); }
+          else { mol(c, 'ethanol', [PA[0] + wob(amb, 1, 1.4), PA[1]], .4, u, ch); mol(c, 'ethanol', [PB[0] + wob(amb, 3, 1.4), PB[1]], -.3, u, ch); }
         }
       }
       /* each smaller molecule of the yeast buds one carbon dioxide, which crosses the wall and leaves */
       function co2At(j, t, dy) {
         var from = j ? [cR.x + 34, cR.y + 8] : [cR.x - 34, cR.y - 6], end = j ? [cR.x + 112, cR.y + 118] : [cR.x - 56, cR.y - 134];
         return [lerp(from[0], end[0], ease(seg(t, 12.6 + j * .4, 16.8))), lerp(from[1], end[1], ease(seg(t, 12.6 + j * .4, 16.8))) + dy];
+      }
+      function heading(c, text, x, col, side) {
+        c.save(); c.font = '700 14px Inter, sans-serif'; var w = c.measureText(text).width + 22, x0 = side === 'left' ? x : x - w;
+        D.rr(c, x0, 5, w, 24, 12); c.fillStyle = col; c.fill(); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1; c.stroke();
+        c.fillStyle = '#FFF8EE'; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(text, x0 + 11, 17.5); c.restore();
       }
       function bars(c, t) {
         var a = seg(t, 18.4, 19.4), x = 54, y = 298, w = 452;
@@ -282,13 +288,16 @@
         draw: function (c, t) {
           var dy = up(t);
           screen(c, W, H, '#142A40', '#0E1D2E', function () {
-            c.strokeStyle = 'rgba(190,220,245,.25)'; c.setLineDash([3, 5]); c.lineWidth = 1; c.beginPath(); c.moveTo(284, 0); c.lineTo(284, H); c.stroke(); c.setLineDash([]);
+            /* two cells side by side, and plainly two: each half has its own tint and its own heading (Daniel, 27 Nov 2026: "not very clear at a glance") */
+            c.fillStyle = 'rgba(196,72,62,.13)'; c.fillRect(0, 0, 284, H); c.fillStyle = 'rgba(196,170,72,.11)'; c.fillRect(284, 0, W - 284, H);
+            c.strokeStyle = 'rgba(226,236,246,.6)'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(284, 0); c.lineTo(284, H); c.stroke();
             muscle(c, dy, t); yeast(c, dy, t);
             shortO2(c, { x: cL.x, y: cL.y + dy }, t, -1); shortO2(c, { x: cR.x, y: cR.y + dy }, t, 1);
             react(c, cL, dy, t, false); react(c, cR, dy, t, true);
             for (var j = 0; j < 2; j++) { var s = seg(t, 12.6 + j * .4, 13); if (s > 0) mol(c, 'co2', co2At(j, t, dy), j ? -.5 : .3, u, s * (1 - seg(t, 18, 18.6))); }
             bars(c, t);
-            A.scaleTag(c, W);
+            heading(c, 'In a muscle cell', 10, '#A8413A', 'left'); heading(c, 'In a yeast cell', W - 10, '#857228', 'right');
+            if (t < 18.4) { c.save(); c.font = '500 11px Inter, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = 'rgba(232,240,248,.72)'; c.fillText('not to scale', 10, H - 9); c.restore(); }
           });
         },
         keyNow: function (t) {
@@ -303,7 +312,7 @@
           return k;
         },
         labels: function (t) {
-          var dy = up(t), it = [{ id: 'm', text: 'part of one muscle cell', x: 92, y: 29 + dy, side: 'T' }, { id: 'y', text: 'yeast cell', x: cR.x + 30, y: cR.y - 88 + dy, side: 'T' }];
+          var dy = up(t), it = [];   /* each cell is named by the heading of its half */
           if (t < 5) it.push({ id: 'mi', text: 'mitochondrion', x: cR.x - 78, y: cR.y - 44 + dy, side: 'T' }, { id: 'nu', text: 'nucleus', x: cR.x + 74, y: cR.y + 44 + dy, side: 'B' });
           if (t >= 5.4 && t < 12) it.push({ id: 'cy', text: 'cytoplasm (magnified more)', x: ZP.x + ZP.w - 34, y: ZP.y + ZP.h - 22 + dy, side: 'B' });
           if (t >= 13 && t < 18) {
@@ -404,20 +413,20 @@
             var st = o2Start(j);
             if (t < st) continue;
             var oa = Math.min(seg(t, st, st + .3), 1 - seg(t, DOTS[j].rm, DOTS[j].rm + .3));
-            if (oa > 0) { var op = B.to(o2P(j, t)); if (onCell(j, t)) A.rbc(c, op[0], op[1], 8, j * .7, oa); mol(c, 'oxygen', op, j * .7, 20, oa); }
+            if (oa > 0) { var op = B.to(o2P(j, t)); if (onCell(j, t)) A.rbc(c, op[0], op[1], 8, j * .7, oa); mol(c, 'oxygen', op, j * .7, 22, oa); }
           }
           /* lactic acid: formed in the muscles, carried to the liver, removed one molecule at a time */
           for (var i = 0; i < N; i++) {
             var q = DOTS[i], la = Math.min(seg(t, q.born, q.born + .5), 1 - seg(t, q.rm, q.rm + .4));
             if (la <= 0) continue;
-            mol(c, 'lactic', B.to(dotP(q, t)), i * .7, 25, la);
+            mol(c, 'lactic', B.to(dotP(q, t)), i * .7, 22, la);
           }
           /* each molecule's star, over all the molecules */
           for (var f = 0; f < N; f++) {
             var fp = B.to(DOTS[f].liver), pe = seg(t, DOTS[f].rm, DOTS[f].rm + 1.5);
             flash(c, fp[0], fp[1], t, DOTS[f].rm, 9);
             /* what the lactic acid becomes */
-            if (pe > 0 && pe < 1) { mol(c, 'co2', [fp[0] - 12 * pe, fp[1] - 26 * pe], f, 22, Math.sin(pe * Math.PI)); mol(c, 'water', [fp[0] + 12 * pe, fp[1] - 20 * pe], f, 24, Math.sin(pe * Math.PI)); }
+            if (pe > 0 && pe < 1) { mol(c, 'co2', [fp[0] - 12 * pe, fp[1] - 26 * pe], f, 22, Math.sin(pe * Math.PI)); mol(c, 'water', [fp[0] + 12 * pe, fp[1] - 20 * pe], f, 22, Math.sin(pe * Math.PI)); }
           }
           inset(c, t, ex); lens(c, t); liverCell(c, t); done(c, t);
         });
@@ -440,12 +449,12 @@
           for (var r = 0; r < 2; r++) for (var n = 0; n < 4; n++) {
             var cx = P.x - sp / 2 + (((T * 26 + (n + r * .5) * sp) % (sp * 4)) + sp * 4) % (sp * 4), yy = cy + (r ? 44 : -44);
             A.rbc(c, cx, yy, 21, .2 + n, a);
-            if (oA > 0) mol(c, 'oxygen', [cx, yy], n, 27, oA * a);
+            if (oA > 0) mol(c, 'oxygen', [cx, yy], n, 32, oA * a);
           }
           var lacA = 1 - seg(t, 24.5, 25.5);   /* it leaves the close-up before the last lactic acid reaches the liver */
           if (lacA > 0) for (var m = 0; m < 3; m++) {
             var lx = P.x - 20 + (((T * 26 + m * (P.w + 40) / 3) % (P.w + 40)) + P.w + 40) % (P.w + 40);
-            mol(c, 'lactic', [lx, cy + wob(T, m, 3)], m, 36, lacA * a);
+            mol(c, 'lactic', [lx, cy + wob(T, m, 3)], m, 32, lacA * a);
           }
         });
         c.restore();
@@ -461,11 +470,11 @@
           var bg = c.createLinearGradient(0, P.y, 0, P.y + P.h); bg.addColorStop(0, '#6B4A34'); bg.addColorStop(1, '#4E3425');
           c.fillStyle = bg; c.fillRect(P.x, P.y, P.w, P.h);
           /* one lactic acid with three oxygen forms three carbon dioxide and three water */
-          mol(c, 'lactic', [P.x + 44, y1 + bob(0)], .2, 56, a);
+          mol(c, 'lactic', [P.x + 44, y1 + bob(0)], .2, 40, a);
           c.strokeStyle = '#F3EEE2'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(P.x + 82, y1); c.lineTo(P.x + 92, y1); c.moveTo(P.x + 87, y1 - 5); c.lineTo(P.x + 87, y1 + 5); c.stroke();
-          for (var i = 0; i < 3; i++) mol(c, 'oxygen', [P.x + 112 + i * 27, y1 + bob(i + 1)], i, 34, a);
+          for (var i = 0; i < 3; i++) mol(c, 'oxygen', [P.x + 112 + i * 27, y1 + bob(i + 1)], i, 40, a);
           D.arrow(c, cx, y1 + 26, cx, y2 - 26, 6, '#FFF3C4', { head: 12, headW: 10 });
-          for (var j = 0; j < 3; j++) { mol(c, 'co2', [P.x + 26 + j * 30, y2 + bob(j + 4)], 0, 34, made * a); mol(c, 'water', [P.x + 116 + j * 27, y2 + bob(j + 7)], j, 38, made * a); }
+          for (var j = 0; j < 3; j++) { mol(c, 'co2', [P.x + 26 + j * 30, y2 + bob(j + 4)], 0, 40, made * a); mol(c, 'water', [P.x + 116 + j * 27, y2 + bob(j + 7)], j, 40, made * a); }
           c.fillStyle = 'rgba(243,238,226,' + (made * a).toFixed(3) + ')'; c.fillRect(P.x + 100, y2 - 1, 8, 2.2); c.fillRect(P.x + 103, y2 - 4, 2.2, 8);
           var sp = ((T * .6) % 1); A.spark(c, cx + 62, y2 - 26 - sp * 8, 7, made * Math.sin(sp * Math.PI) * a);
         });
@@ -493,9 +502,9 @@
           var k = (.5 - .5 * Math.cos((t + amb) * 5.4)) * ex;
           var F = A.fibre(c, P.x, P.y + 10, P.w, P.h - 20, k * .55, { rows: 4, glow: .3 * ex, bg: '#0C1A28' });
           /* little oxygen arrives */
-          for (var i = 0; i < 2; i++) { var ph = ((t + amb) * .4 + i * .5) % 1, go = F.mitos[i ? F.mitos.length - 8 : 3]; if (go) mol(c, 'oxygen', [lerp(P.x + 4, go.x, ph), lerp(go.y, go.y, ph)], i, 18, Math.sin(ph * Math.PI) * a); }
+          for (var i = 0; i < 2; i++) { var ph = ((t + amb) * .4 + i * .5) % 1, go = F.mitos[i ? F.mitos.length - 8 : 3]; if (go) mol(c, 'oxygen', [lerp(P.x + 4, go.x, ph), lerp(go.y, go.y, ph)], i, 22, Math.sin(ph * Math.PI) * a); }
           /* lactic acid forms in the cytoplasm between the myofibrils */
-          for (var n = 0; n < 5; n++) { var f = seg(t, 5.6 + n * 1.5, 6.2 + n * 1.5), gy = F.gaps[n % F.gaps.length]; if (f > 0) mol(c, 'lactic', [P.x + 30 + n * 34 + wob(t + amb, n, 1.2), gy + wob(t + amb, n + 2, .8)], n, 24, f * a); }
+          for (var n = 0; n < 5; n++) { var f = seg(t, 5.6 + n * 1.5, 6.2 + n * 1.5), gy = F.gaps[n % F.gaps.length]; if (f > 0) mol(c, 'lactic', [P.x + 30 + n * 34 + wob(t + amb, n, 1.2), gy + wob(t + amb, n + 2, .8)], n, 22, f * a); }
         });
         c.restore();
       }

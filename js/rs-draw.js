@@ -55,17 +55,17 @@
 
   /* each molecule, in nanometres: [colour, x, y, radius], drawn from the back */
   var MOL = {
-    water: [['h', .083, .058, .082], ['h', -.083, .058, .082], ['o', 0, -.012, .138]],
-    oxygen: [['o', -.062, 0, .138], ['o', .062, 0, .138]],
-    co2: [['o', -.118, 0, .132], ['o', .118, 0, .132], ['c', 0, 0, .128]],
+    water: [['h', .083, .058, .066], ['h', -.083, .058, .066], ['o', 0, -.012, .132]],
+    oxygen: [['o', -.062, 0, .132], ['o', .062, 0, .132]],
+    co2: [['o', -.118, 0, .132], ['o', .118, 0, .132], ['c', 0, 0, .124]],
     urea: [['h', -.205, .108, .07], ['h', -.13, .205, .07], ['h', .205, .108, .07], ['h', .13, .205, .07], ['n', -.122, .07, .118], ['n', .122, .07, .118], ['o', 0, -.142, .13], ['c', 0, 0, .115]],
     nitrate: [['o', 0, -.135, .132], ['o', .117, .068, .132], ['o', -.117, .068, .132], ['n', 0, 0, .105]],
     mg: [['mg', 0, 0, .092]],
     scent: [['scent', 0, 0, .19]],
     air: [['air', -.058, 0, .125], ['air', .058, 0, .125]],
     /* lactic acid C3H6O3 and ethanol C2H5OH, each with its own coloured halo, so a pupil tells them apart at a glance */
-    lactic: [['h', -.27, .1, .062], ['h', -.12, -.115, .062], ['h', .03, -.09, .062], ['h', -.255, -.105, .062], ['h', .29, .135, .062], ['h', .03, .225, .062], ['c', -.17, .02, .112], ['c', 0, .05, .112], ['c', .17, -.02, .112], ['o', .19, -.165, .118], ['o', .285, .055, .118], ['o', -.03, .18, .118]],
-    ethanol: [['h', -.12, -.115, .062], ['h', .03, .1, .062], ['h', -.285, -.07, .062], ['h', -.24, .125, .062], ['h', .05, -.17, .062], ['h', .275, .13, .062], ['c', -.17, .02, .116], ['c', .01, -.04, .116], ['o', .185, .04, .124]]
+    lactic: [['h', -.27, .1, .066], ['h', -.12, -.115, .066], ['h', .03, -.09, .066], ['h', -.255, -.105, .066], ['h', .29, .135, .066], ['h', .03, .225, .066], ['c', -.17, .02, .124], ['c', 0, .05, .124], ['c', .17, -.02, .124], ['o', .19, -.165, .132], ['o', .285, .055, .132], ['o', -.03, .18, .132]],
+    ethanol: [['h', -.12, -.115, .066], ['h', .03, .1, .066], ['h', -.285, -.07, .066], ['h', -.24, .125, .066], ['h', .05, -.17, .066], ['h', .275, .13, .066], ['c', -.17, .02, .124], ['c', .01, -.04, .124], ['o', .185, .04, .132]]
   };
   var CACHE = {};
   /* a molecule as a small picture, made once for each size on the screen, so hundreds can move at 60 frames a second */
@@ -83,8 +83,8 @@
         g.fillStyle = hg; g.beginPath(); g.arc(0, 0, .44, 0, TAU); g.fill();
       }
       /* the three small gases and water are told apart by more than their red atoms: carbon dioxide blue, water pale blue, oxygen a white ring */
-      var SOFT = { co2: '64,108,255', water: '168,244,255' }[name];
-      if (SOFT) { var sg = g.createRadialGradient(0, 0, .06, 0, 0, .32); sg.addColorStop(0, 'rgba(' + SOFT + ',.55)'); sg.addColorStop(.74, 'rgba(' + SOFT + ',.34)'); sg.addColorStop(1, 'rgba(' + SOFT + ',0)'); g.fillStyle = sg; g.beginPath(); g.arc(0, 0, .32, 0, TAU); g.fill(); }
+      var SOFT = { co2: '64,108,255', water: '168,244,255' }[name], SR = name === 'co2' ? .31 : .25;   /* each halo hugs its own molecule, so it adds no size */
+      if (SOFT) { var sg = g.createRadialGradient(0, 0, .04, 0, 0, SR); sg.addColorStop(0, 'rgba(' + SOFT + ',.55)'); sg.addColorStop(.74, 'rgba(' + SOFT + ',.34)'); sg.addColorStop(1, 'rgba(' + SOFT + ',0)'); g.fillStyle = sg; g.beginPath(); g.arc(0, 0, SR, 0, TAU); g.fill(); }
       MOL[name].forEach(function (a) { ball(g, a[1], a[2], a[3], C[a[0]]); });
       if (name === 'oxygen') { g.strokeStyle = 'rgba(255,255,255,.78)'; g.lineWidth = .018; g.beginPath(); g.ellipse(0, 0, .232, .17, 0, 0, TAU); g.stroke(); }
     }
