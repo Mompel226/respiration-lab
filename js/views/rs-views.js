@@ -31,21 +31,67 @@
     var W = 600, H = 620, t = 0, mode = 'resp', foc = null;
     var WIN = { x0: 70, y0: 8, w: 700, h: 900 }, ROOM = { x0: 70, y0: -36, w: 700, h: 944 }, B = A.Body(WIN, 420, H), IN = { x: 290, y: 14, w: 300, h: 200 }, CELL = null;
     var SP = [[214, 540], [190, 470], [236, 610], [634, 520], [660, 600], [330, 860], [520, 880], [360, 820], [500, 800], [400, 640], [360, 620], [430, 820], [460, 760], [440, 490], [420, 96], [395, 120], [450, 110]].map(function (q, i) { return { x: q[0], y: q[1], p: i * .37 }; });
+    /* "Enzymes control respiration": inside the cell, a chain of reactions, each with its own enzyme (Daniel, 27 Nov 2026: the earlier picture
+       was "not very informative or accurate", a glucose sliding past four enzymes and never changing). As in the film of station 3:
+       in the cytoplasm an enzyme splits glucose into two smaller molecules; in a mitochondrion another enzyme breaks a smaller molecule
+       down and carbon dioxide is released; a third uses oxygen, and water forms. Each active site fits its own substrate only; each enzyme
+       is unchanged and takes the next molecule; energy is released in small steps, most of it at the end. */
+    var PE = null, CH = null;
+    function chain(c) {
+      var P = PE = { x: 16, y: IN.y + IN.h + 14, w: W - 32, h: 192 }, u = (t * .105) % 1, cy = P.y + P.h * .54;
+      var eA = { x: P.x + P.w * .2, y: cy, s: 34, site: 'ring' }, mx0 = P.x + P.w * .4, mw = P.w * .56, eB = { x: mx0 + mw * .32, y: cy, s: 30, site: 'half' }, eC = { x: mx0 + mw * .76, y: cy, s: 28, site: 'pair' };
+      CH = { a: eA, b: eB, c: eC, mx0: mx0, mw: mw };
+      A.callout(c, [IN.x + IN.w * .2, IN.y + IN.h - 30], P);
+      A.panel(c, P, function () {
+        c.fillStyle = '#3A3022'; c.fillRect(P.x, P.y, P.w, P.h);
+        /* the part of the picture inside a mitochondrion */
+        D.rr(c, mx0, P.y + 34, mw, P.h - 52, (P.h - 52) / 2); c.fillStyle = '#C77E59'; c.fill(); c.strokeStyle = '#6E3A26'; c.lineWidth = 1.4; c.stroke();
+        D.rr(c, mx0 + 8, P.y + 42, mw - 16, P.h - 68, (P.h - 68) / 2); c.fillStyle = '#F2D2AF'; c.fill(); c.strokeStyle = 'rgba(128,70,44,.9)'; c.lineWidth = 1; c.stroke();
+        c.fillStyle = 'rgba(255,244,196,.95)'; c.font = '600 13px Inter, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText('in the cytoplasm', eA.x, P.y + 18); c.fillText('in a mitochondrion', mx0 + mw / 2, P.y + 18); c.textAlign = 'left';
+        function site(e) { return [e.x - e.s * .62, e.y]; }
+        /* each enzyme faces left, the way its substrate comes; each stays the same */
+        [eA, eB, eC].forEach(function (e, n) {
+          A.enzyme(c, e.x, e.y, e.s, Math.PI, 1, e.site);
+          /* each enzyme named under it, on the picture: no line from the edge crosses the key or the words */
+          c.fillStyle = n ? '#5A2E1C' : 'rgba(255,244,196,.95)'; c.font = '600 13px Inter, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('enzyme ' + (n + 1), e.x + 4, e.y + e.s + 16); c.textAlign = 'left';   /* dark on the pale inside of the mitochondrion */
+        });
+        /* the active site of the first: the part that fits glucose */
+        c.strokeStyle = 'rgba(255,244,196,.85)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(eA.x - eA.s * .5, eA.y - eA.s * .3); c.lineTo(eA.x - eA.s * .9, eA.y - eA.s * 1.25); c.stroke();
+        c.fillStyle = 'rgba(255,244,196,.95)'; c.font = '600 12px Inter, sans-serif'; c.textAlign = 'center'; c.fillText('active site', eA.x - eA.s * .9, eA.y - eA.s * 1.25 - 9); c.textAlign = 'left';
+        var sa = site(eA), sb = site(eB), sc2 = site(eC);
+        /* 1. glucose fits enzyme A and is split into two smaller molecules */
+        if (u < .22) { var g = u < .08 ? along([P.x - 30, cy], [sa[0] - 8, sa[1]], seg(u, 0, .08)) : [sa[0] - 8, sa[1]]; D.mol(c, 'glucose', g[0], g[1] + bob(1) * .3, 0, 66, 1 - seg(u, .2, .22)); }
+        var hA = seg(u, .2, .23);
+        if (hA > 0 && u < .62) {
+          /* one smaller molecule goes on into the mitochondrion; the other goes the same way, after it */
+          var h1 = u < .3 ? [sa[0] - 8, cy - 12] : u < .4 ? along([sa[0] - 8, cy - 12], [sb[0] - 6, sb[1]], seg(u, .3, .4)) : [sb[0] - 6, sb[1]];
+          A.half(c, h1[0], h1[1], -Math.PI / 2, 15, hA * (1 - seg(u, .5, .52)), true);
+          var h2 = u < .3 ? [sa[0] - 8, cy + 12] : along([sa[0] - 8, cy + 12], [sa[0] + 40, cy + 64], seg(u, .3, .46));
+          A.half(c, h2[0], h2[1], Math.PI / 2, 15, hA * (1 - seg(u, .42, .5)), false);
+        }
+        flashAt(c, sa[0], cy - 18, u, .21, 6);
+        /* 2. enzyme B breaks the smaller molecule down: carbon dioxide is released */
+        for (var j = 0; j < 3; j++) { var r = seg(u, .5 + j * .02, .7 + j * .02); if (r > 0 && r < 1) D.mol(c, 'co2', sb[0] + j * 10 - 10, lerp(sb[1], P.y + 30, ease(r)), j, 40, Math.sin(r * Math.PI) * 1.4 > 1 ? 1 : Math.sin(r * Math.PI) * 1.4); }
+        flashAt(c, sb[0], cy - 18, u, .5, 6);
+        /* 3. enzyme C uses oxygen, and water forms: most of the energy is released here */
+        if (u < .74) { var o = u < .52 ? along([P.x + P.w + 20, cy - 40], [sc2[0] - 4, sc2[1]], seg(u, .4, .52)) : [sc2[0] - 4, sc2[1]]; if (u > .4) D.mol(c, 'oxygen', o[0], o[1], 0, 40, 1 - seg(u, .72, .74)); }
+        var wv = seg(u, .72, .76);
+        if (wv > 0 && u < .98) { var wp = along([sc2[0] - 4, sc2[1]], [sc2[0] - 60, P.y + P.h - 22], seg(u, .76, .92)); D.mol(c, 'water', wp[0], wp[1], 0, 44, wv * (1 - seg(u, .94, .98))); }
+        for (var s = 0; s < 4; s++) flashAt(c, sc2[0] - 10 + s * 7, cy - 22 - s * 3, u, .73 + s * .012, 7);
+      });
+    }
+    function flashAt(c, x, y, u, at, s) { var k = seg(u, at, at + .06); if (k > 0 && k < 1) A.spark(c, x, y - 10 * k, s * (.7 + .5 * k), Math.sin(k * Math.PI)); }
+    function along(p, q, k) { var e = ease(k); return [lerp(p[0], q[0], e), lerp(p[1], q[1], e)]; }
+    function bob(i) { return Math.sin(t * 1.3 + i * 1.9) * 2; }
     /* the close-up: part of one long muscle cell, joined to the place in the arm it comes from */
     function inset(c, g) {
       A.callout(c, B.to([640, 470]), IN);
       A.panel(c, IN, function () {
         var k = .5 - .5 * Math.cos(t * 1.8), cx = IN.x + IN.w / 2, cy = IN.y + IN.h / 2;
-        /* what the close-up is, said on it */
-        c.fillStyle = 'rgba(255,244,196,.95)'; c.font = '600 13px Inter, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('part of one long muscle cell (magnified)', cx, IN.y + 14); c.textAlign = 'left';
-        CELL = A.fibre(c, IN.x, IN.y + 28, IN.w, IN.h - 36, foc === 'enzymes' ? 0 : k * .7, { glow: g, rows: 4, bg: '#0C1A28' });
-        if (foc === 'enzymes') {
-          c.fillStyle = 'rgba(14,29,46,.66)'; c.fillRect(IN.x, IN.y, IN.w, IN.h);
-          /* one small reaction after another, each with its own enzyme */
-          for (var i = 0; i < 4; i++) A.enzyme(c, cx - 72 + i * 48, cy + (i % 2 ? 16 : -16), 19, i % 2 ? -Math.PI / 2 : Math.PI / 2);
-          var u = (t * .3) % 1;
-          D.mol(c, 'glucose', cx - 104 + u * 208, cy, u * 4, 62, 1);
-        }
+        /* what the close-up is, said on it, at its foot: the names' lines come from above and never cross it (Daniel, 27 Nov 2026: "Labels are hiding the text") */
+        c.fillStyle = 'rgba(255,244,196,.95)'; c.font = '600 13px Inter, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('part of one long muscle cell (magnified)', cx, IN.y + IN.h - 14); c.textAlign = 'left';
+        CELL = A.fibre(c, IN.x, IN.y + 8, IN.w, IN.h - 36, foc === 'enzymes' ? 0 : k * .7, { glow: g, rows: 4, bg: '#0C1A28' });
         if (foc === 'reactions') CELL.mitos.forEach(function (m, n) { if (n % 3) return; var ph = (t * .55 + n / 11) % 1; A.spark(c, m.x, m.y - ph * 10, 5, Math.sin(ph * Math.PI)); });
       });
     }
@@ -74,7 +120,9 @@
               var ph = (t * .5 + q.p) % 1, p = B.to([q.x, q.y]);
               A.spark(c, p[0], p[1], foc === 'every' ? 7 : 5, Math.sin(ph * Math.PI) * (foc === 'every' ? 1 : .75));
             });
+            if (foc === 'enzymes') { c.fillStyle = 'rgba(8,16,26,.55)'; c.fillRect(0, 0, W, H); }
             inset(c, foc === 'reactions' ? .6 : .32);
+            if (foc === 'enzymes') chain(c);
           }
         });
       },
@@ -85,14 +133,16 @@
           it.push({ id: 'lu', text: 'lungs', x: l[0], y: l[1], side: 'T' }, { id: 'air', text: 'air', x: nn[0], y: nn[1], side: 'T' });
         } else {
           var nu = CELL && CELL.nuclei[0], mc = CELL && CELL.mitos.filter(function (q) { return q.kind === 'edge' && q.y < IN.y + IN.h / 2; }).sort(function (a, b) { return Math.abs(a.x - IN.x - IN.w * .6) - Math.abs(b.x - IN.x - IN.w * .6); })[0];
-          if (foc !== 'enzymes') it.push({ id: 'nuc', text: 'nuclei (one muscle cell has many)', x: nu ? nu.x : IN.x + 64, y: nu ? nu.y : IN.y + 22, side: 'T' });
-          it.push({ id: 'mit', text: foc === 'enzymes' ? 'enzymes' : 'mitochondria', x: foc === 'enzymes' ? IN.x + IN.w / 2 + 72 : mc ? mc.x : IN.x + 210, y: foc === 'enzymes' ? IN.y + IN.h / 2 - 16 : mc ? mc.y : IN.y + 22, side: 'T' });
+          it.push({ id: 'nuc', text: 'nuclei (one muscle cell has many)', x: nu ? nu.x : IN.x + 64, y: nu ? nu.y : IN.y + 22, side: 'T' });
+          it.push({ id: 'mit', text: 'mitochondria', x: mc ? mc.x : IN.x + 210, y: mc ? mc.y : IN.y + 22, side: 'T' });
+          /* the chain of reactions: each enzyme named from below, where nothing is written */
+          /* the chain of reactions names its enzymes on the picture itself (chain) */
         }
         return it;
       }
     };
-    var V = RV({ scene: scene, fill: true, aria: 'A body with lights in its cells, and a close-up of one muscle cell. A button shows breathing instead: air moves into and out of the lungs.', barLabel: 'What to show',
-      buttons: [['resp', 'Respiration'], ['breath', 'Breathing']], key: { all: [['spark', 'energy released in a cell'], ['air', 'air']], sets: [['energy released in a cell'], ['air']], now: function () { return mode === 'resp' ? ['energy released in a cell'] : ['air']; } },
+    var V = RV({ scene: scene, fill: true, liveNames: true, aria: 'A body with lights in its cells, and a close-up of one muscle cell. A button shows breathing instead: air moves into and out of the lungs.', barLabel: 'What to show',
+      buttons: [['resp', 'Respiration'], ['breath', 'Breathing']], key: { all: [['spark', 'energy released in a cell'], ['air', 'air'], ['glucose', 'glucose'], ['halfm', 'smaller molecule'], ['co2', 'carbon dioxide'], ['oxygen', 'oxygen'], ['water', 'water']], sets: [['energy released in a cell', 'glucose', 'smaller molecule', 'carbon dioxide', 'oxygen', 'water'], ['air']], now: function () { return mode !== 'resp' ? ['air'] : foc === 'enzymes' ? ['energy released in a cell', 'glucose', 'smaller molecule', 'carbon dioxide', 'oxygen', 'water'] : ['energy released in a cell']; } },
       onButton: function (id) { mode = id; foc = null; if (id === 'breath') ctx.pick('breathing', { stay: true }); sync(); } });
     function sync() { pressAll(V, ['resp', 'breath'], mode); V.names(); V.paint(); }
     return { el: V.el, tight: V.fig, start: function () { V.start(); sync(); }, stop: V.stop,
@@ -127,12 +177,14 @@
     var U = {
       /* the cell's own mitochondria release energy into the parts beside them; then those parts, and the whole cell, shorten */
       muscle: function (c) {
-        var ph = (t * .3) % 1, rel = seg(ph, .02, .32), k = ease(seg(ph, .3, .46)) * (1 - ease(seg(ph, .74, .94)));
-        MUSCLE = A.fibre(c, 20, 74, W - 40, H - 148, k, { rows: 5, shorten: true, glow: .5 * Math.sin(rel * Math.PI), bg: '#10202F' });
-        if (rel > 0 && rel < 1) MUSCLE.mitos.forEach(function (m, i) {
-          if (i % 2) return;
+        /* first the mitochondria light up and the energy appears AT them (Daniel, 27 Nov 2026: it looked as if it came from the
+           contracting parts); then it moves into the part that contracts beside each one; then those parts shorten */
+        var ph = (t * .26) % 1, rel = seg(ph, .02, .2), mv = seg(ph, .24, .42), k = ease(seg(ph, .42, .56)) * (1 - ease(seg(ph, .76, .94)));
+        MUSCLE = A.fibre(c, 20, 74, W - 40, H - 148, k, { rows: 3, shorten: true, glow: .7 * (mv > 0 ? 1 - mv : ease(rel)), bg: '#10202F' });
+        if (rel > 0 && mv < 1) MUSCLE.mitos.forEach(function (m, i) {
+          if (m.kind !== 'pair' || i % 2) return;
           var near = MUSCLE.bands.reduce(function (a, q) { return Math.abs(q.y - m.y) < Math.abs(a.y - m.y) ? q : a; });
-          A.spark(c, m.x, lerp(m.y, near.y, ease(rel)), 5, Math.sin(rel * Math.PI));
+          A.spark(c, m.x, lerp(m.y, near.y, ease(mv)), 6, mv > 0 ? 1 - .7 * mv : ease(rel));
         });
       },
       protein: function (c) {
@@ -271,7 +323,7 @@
 
   /* ======================================================================= 3. The equations */
   Views.add('equation', function (spec, ctx) {
-    var W = 600, H = 390, t = 0, mode = 'word', runAt = 0;
+    var W = 600, H = 390, t = 0, mode = 'word', runAt = 0, balT = 0;
     /* the atoms, for "Count the atoms": each starts in a reactant and ends in a product */
     var AT = (function () {
       var a = [], bonds = [], rnd = (function () { var s = 7; return function () { s = (s * 16807) % 2147483647; return (s % 1000) / 1000; }; })();
@@ -315,20 +367,31 @@
       return [lerp(x1, q.ex, clamp(B1 * 1.2 - q.d * .2)), lerp(y1, q.ey, clamp(B1 * 1.2 - q.d * .2))];
     }
     function arrowAt(c, x, y) { D.arrow(c, x - 26, y, x + 26, y, 8, '#FFF3C4', { head: 15, headW: 12 }); }
+    /* the word equation names each substance once: one molecule of each. The balanced equation then shows the numbers:
+       the five more of oxygen, carbon dioxide and water come out of the one (Daniel, 27 Nov 2026: "when you show the word
+       equation, maybe you just show each of the molecules 1. When you click balance equation, then you show everything balanced") */
     function board(c) {
-      /* the equation's own numbers of molecules: 1 glucose, 6 oxygen, 6 carbon dioxide, 6 water */
-      var y = H / 2 - 8, bob = function (i) { return Math.sin(t * 1.2 + i) * 2.5; };
+      var y = H / 2 - 8, bob = function (i) { return Math.sin(t * 1.2 + i) * 2.5; }, k = mode === 'word' ? 0 : V && V.isStill() ? 1 : clamp(balT / 1.8);
       D.mol(c, 'glucose', 78, y + bob(1), .2, 112);
       plus(c, 150, y);
-      for (var n = 0; n < 6; n++) D.mol(c, 'oxygen', 188 + (n % 2) * 46, y - 62 + (n >> 1) * 62 + bob(n), n, 84);
+      function group(name, x0, dx, u, rot) {
+        var mid = [x0 + dx / 2, y];
+        for (var n = 0; n < 6; n++) {
+          var slot = [x0 + (n % 2) * dx, y - 62 + (n >> 1) * 62], first = n === 2, a = first ? 1 : seg(k, .12 + n * .1, .36 + n * .1);
+          if (a <= 0) continue;
+          var e = ease(first ? seg(k, 0, .3) : a);
+          D.mol(c, name, lerp(mid[0], slot[0], e), lerp(mid[1], slot[1], e) + bob(n + rot), rot ? n : 0, u, a);
+        }
+      }
+      group('oxygen', 188, 46, 84, 1);
       arrowAt(c, 300, y);
-      for (var m = 0; m < 6; m++) D.mol(c, 'co2', 372 + (m % 2) * 54, y - 62 + (m >> 1) * 62 + bob(m), 0, 84);
+      group('co2', 372, 54, 84, 0);
       plus(c, 462, y);
-      for (var w = 0; w < 6; w++) D.mol(c, 'water', 504 + (w % 2) * 48, y - 62 + (w >> 1) * 62 + bob(w + 1), 0, 92);
+      group('water', 504, 48, 92, 0);
     }
     var scene = {
       W: W, H: H,
-      tick: function (dt) { t += dt; if (mode === 'atoms') runAt += dt; },
+      tick: function (dt) { t += dt; if (mode === 'atoms') runAt += dt; if (mode === 'balanced') balT += dt; },
       draw: function (c) {
         sc(c, W, H, '#142A40', '#0E1D2E', function () {
           if (mode === 'where') {
@@ -372,8 +435,9 @@
           if (uu > .84) its.push({ id: 'p', text: 'after: the products', x: 471, y: 36, side: 'T' }, { id: 'pc', text: 'carbon dioxide', x: 416, y: 325, side: 'B' }, { id: 'pw', text: 'water', x: 526, y: 320, side: 'B' });
           return its;
         }
-        var y = H / 2 + 54;
-        return [{ id: 'gl', text: 'glucose', x: 52, y: H / 2 + 21, side: 'B' }, { id: 'ox', text: 'oxygen', x: 234, y: y, side: 'B' }, { id: 'co', text: 'carbon dioxide', x: 426, y: y, side: 'B' }, { id: 'wa', text: 'water', x: 552, y: y, side: 'B' }];
+        /* each name ends on a molecule: the one of the word equation, or the lowest of each column of the balanced one */
+        var LX = mode === 'word' ? [211, 399, 528] : [234, 426, 552], y = mode === 'word' ? H / 2 + 10 : H / 2 + 54;
+        return [{ id: 'gl', text: 'glucose', x: 52, y: H / 2 + 21, side: 'B' }, { id: 'ox', text: 'oxygen', x: LX[0], y: y, side: 'B' }, { id: 'co', text: 'carbon dioxide', x: LX[1], y: y, side: 'B' }, { id: 'wa', text: 'water', x: LX[2], y: y, side: 'B' }];
       },
       read: function (pill) {
         if (mode === 'where') { pill('e', 'in the mitochondria', 'ok', 'Where:'); pill('n', 'have many mitochondria, for more aerobic respiration', '', 'Muscle cells:'); return; }
@@ -383,16 +447,17 @@
         else pill('n', '6 carbon, 12 hydrogen, 18 oxygen atoms', 'ok', 'Each side:');
       }
     };
-    var V = RV({ scene: scene, liveNames: true, aria: 'The equation for aerobic respiration, drawn with its molecules. One button counts the atoms on each side.', barLabel: 'What to show',
+    var V = RV({ scene: scene, liveNames: true, cls: 'memv--eq', aria: 'The equation for aerobic respiration, drawn with its molecules: one of each for the word equation, and the numbers of the balanced equation. One button counts the atoms on each side.', barLabel: 'What to show',
       buttons: [['word', 'Word equation'], ['balanced', 'Balanced equation'], ['atoms', 'Count the atoms'], ['where', 'Where it happens']],
       read: [['e', 'Word equation:'], ['n', 'Note:']],
       key: { all: [['glucose', 'glucose'], ['oxygen', 'oxygen'], ['co2', 'carbon dioxide'], ['water', 'water'], ['spark', 'energy released']], sets: [['glucose', 'oxygen', 'carbon dioxide', 'water'], ['energy released'], []], now: function () { return mode === 'where' ? ['energy released'] : mode === 'atoms' ? [] : ['glucose', 'oxygen', 'carbon dioxide', 'water']; } },
-      onButton: function (id) { mode = id; runAt = 0; if (id === 'word' || id === 'balanced' || id === 'where') ctx.pick(id, { stay: true }); sync(); } });
+      onButton: function (id) { mode = id; runAt = 0; balT = 0; if (id === 'word' || id === 'balanced' || id === 'where') ctx.pick(id, { stay: true }); sync(); } });
     var atomKey = document.createElement('p'); atomKey.className = 'rsv-note'; atomKey.innerHTML = '<span style="color:#76839C">●</span> carbon &nbsp; <span style="color:#E6EEF5;-webkit-text-stroke:.6px #51667A">●</span> hydrogen (small) &nbsp; <span style="color:#FF7468">●</span> oxygen'; atomKey.hidden = true;
     /* the key of the atoms lies on the picture: under it, it would need a row the column does not have */
     atomKey.classList.add('rsv-note--on'); V.fig.style.position = 'relative'; V.fig.appendChild(atomKey);
     function sync() { pressAll(V, ['word', 'balanced', 'atoms', 'where'], mode); atomKey.hidden = mode !== 'atoms'; if (V.isStill() && mode === 'atoms') runAt = 11; V.names(); V.paint(); }
-    return { el: V.el, start: function () { V.start(); sync(); }, stop: V.stop,
+    /* the caption and credit fold under the i: the picture and its equation have the room (Daniel, 27 Nov 2026) */
+    return { el: V.el, tight: V.fig, start: function () { V.start(); sync(); }, stop: V.stop,
       say: 'Glucose and oxygen react: carbon dioxide and water are formed',
       credit: 'Molecules drawn for this lab.',
       focus: function (part) { if (part === 'word' || part === 'def') mode = 'word'; else if (part === 'balanced') mode = 'balanced'; else if (part === 'where') mode = 'where'; runAt = 0; sync(); } };
@@ -635,14 +700,16 @@
         pill('e', e, 'ok', { muscle: 'In muscles:', yeast: 'In yeast:', balanced: 'In yeast:', energy: 'Anaerobic:', where: 'Where:' }[mode]);
       }
     };
-    V = RV({ scene: scene, aria: 'The word equations for anaerobic respiration in muscles and in yeast, and a bar that compares the energy from one glucose molecule.', barLabel: 'What to show',
+    V = RV({ scene: scene, cls: 'memv--eq', aria: 'The word equations for anaerobic respiration in muscles and in yeast, and a bar that compares the energy from one glucose molecule.', barLabel: 'What to show',
       buttons: [['muscle', 'In muscles'], ['yeast', 'In yeast'], ['balanced', 'Balanced equation'], ['energy', 'Energy released'], ['where', 'Where it happens']], read: [['e', 'In muscles:']],
       key: { all: [['glucose', 'glucose'], ['lactic', 'lactic acid'], ['ethanol', 'alcohol'], ['co2', 'carbon dioxide'], ['spark', 'energy released']],
              sets: [['glucose', 'lactic acid'], ['glucose', 'alcohol', 'carbon dioxide'], ['energy released']],
              now: function () { return mode === 'muscle' || mode === 'where' ? ['glucose', 'lactic acid'] : mode === 'energy' ? [] : ['glucose', 'alcohol', 'carbon dioxide']; } },
       onButton: function (id) { mode = id; since = 0; var map = { muscle: 'muscle', yeast: 'yeast', balanced: 'balanced', energy: 'less', where: 'where' }; ctx.pick(map[id], { stay: true }); sync(); } });
     function sync() { pressAll(V, ['muscle', 'yeast', 'balanced', 'energy', 'where'], mode); V.names(); V.paint(); }
-    return { el: V.el, start: function () { V.start(); sync(); }, stop: V.stop,
+    V.fig.style.position = 'relative';
+    /* the caption and credit fold under the i: the picture and its equation have the room (Daniel, 27 Nov 2026) */
+    return { el: V.el, tight: V.fig, start: function () { V.start(); sync(); }, stop: V.stop,
       say: 'Muscles form lactic acid. Yeast forms alcohol and carbon dioxide.',
       credit: 'Molecules drawn for this lab.',
       focus: function (part) { var map = { def: 'muscle', less: 'energy', yeast: 'yeast', muscle: 'muscle', balanced: 'balanced', where: 'where' }; if (part && map[part] && map[part] !== mode) { mode = map[part]; since = 0; } sync(); } };

@@ -431,3 +431,12 @@ p,li,dd,figcaption{text-wrap:pretty}
 /* the atoms' key stands in the picture's lower band, centred */
 .rsv-note.rsv-note--on{position:absolute;z-index:3;left:50%;bottom:3px;transform:translateX(-50%);margin:0;padding:0;white-space:nowrap;background:none;color:var(--col-ink);font-size:12.5px}
 .rsv-note--on[hidden]{display:none}
+/* the equations and "Where" under the molecule pictures (stations 3 and 7): large enough to be read at a glance (Daniel, 27 Nov 2026: "very little and barely visible") */
+.memv--eq .memv__read{gap:8px 10px;min-height:0}
+.memv--eq .memv__pill{font-size:16px;line-height:1.3;padding:7px 16px;border-width:1.5px}
+.memv--eq .memv__pill[data-k="e"]{font-size:17.5px;padding:8px 18px}
+/* a picture whose names stand in bands above and below it: its i goes to the top corner, clear of the names below */
+.memv:not(.is-inpic) .memv__fig > .pinfo{top:6px;bottom:auto}
+.memv:not(.is-inpic) .memv__fig > .pinfo .pinfo__t{top:32px;bottom:auto}
+.memv--eq .memv__pill[data-k="e"] i{font-weight:700}
+@media (max-width:540px){ .memv--eq .memv__pill{font-size:14.5px} .memv--eq .memv__pill[data-k="e"]{font-size:16px} }

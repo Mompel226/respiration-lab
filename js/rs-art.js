@@ -128,17 +128,23 @@
     c.closePath(); c.fill();
     c.restore();
   }
-  /* an enzyme: a folded protein, lumpy like a real one, with an active site cut into it, facing `rot` */
-  function enzyme(c, x, y, s, rot, a) {
+  /* an enzyme: a folded protein, lumpy like a real one, with an active site cut into it, facing `rot`.
+     `site`: the shape of the active site, which fits one substrate only: 'ring' (a glucose ring), 'half' (the smaller molecule), 'pair' (oxygen) */
+  function enzyme(c, x, y, s, rot, a, site) {
     c.save(); c.translate(x, y); c.rotate(rot || 0); if (a != null) c.globalAlpha = a;
-    var gap = .36, n = 44;
+    var gap = { ring: .52, half: .5, pair: .3 }[site] || .36, n = 44;
     c.beginPath();
     for (var i = 0; i <= n; i++) {
       var th = gap + (TAU - 2 * gap) * i / n, r = s * (1 + .075 * Math.sin(3 * th + .6) + .025 * Math.sin(5 * th + 1.2));
       c[i ? 'lineTo' : 'moveTo'](r * Math.cos(th), r * Math.sin(th));
     }
-    c.lineTo(s * .36, -s * .15); c.quadraticCurveTo(s * .12, 0, s * .36, s * .15); c.closePath();
-    var lg = c.createRadialGradient(-s * .3, -s * .4, s * .1, 0, 0, s * 1.15); lg.addColorStop(0, '#CFE2A4'); lg.addColorStop(.6, '#8DB45A'); lg.addColorStop(1, '#55762F');
+    if (site === 'ring') { c.lineTo(s * .3, -s * .4); c.lineTo(s * .06, -s * .2); c.lineTo(s * .06, s * .2); c.lineTo(s * .3, s * .4); }
+    else if (site === 'half') { c.lineTo(s * .44, -s * .42); c.quadraticCurveTo(-s * .2, 0, s * .44, s * .42); }
+    else if (site === 'pair') { c.lineTo(s * .5, -s * .2); c.bezierCurveTo(s * .2, -s * .22, s * .2, s * .22, s * .5, s * .2); }
+    else { c.lineTo(s * .36, -s * .15); c.quadraticCurveTo(s * .12, 0, s * .36, s * .15); }
+    c.closePath();
+    var tint = { ring: ['#CFE2A4', '#8DB45A', '#55762F'], half: ['#C9E8C8', '#6FB37A', '#3C7A48'], pair: ['#E2E8A8', '#B0B852', '#6E7A26'] }[site] || ['#CFE2A4', '#8DB45A', '#55762F'];
+    var lg = c.createRadialGradient(-s * .3, -s * .4, s * .1, 0, 0, s * 1.15); lg.addColorStop(0, tint[0]); lg.addColorStop(.6, tint[1]); lg.addColorStop(1, tint[2]);
     c.fillStyle = lg; c.fill(); c.strokeStyle = 'rgba(40,62,22,.9)'; c.lineWidth = Math.max(.7, s * .045); c.stroke();
     /* the coils of its chain */
     c.strokeStyle = 'rgba(244,252,222,.42)'; c.lineWidth = Math.max(.7, s * .06); c.lineCap = 'round';
