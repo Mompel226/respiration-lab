@@ -32,7 +32,7 @@ the questions say right or wrong, never the answer.
 | 🧍 **One real body** | a body from medical scans: follow glucose, oxygen, carbon dioxide and water along their routes |
 | 🔋 **Seven uses of energy** | a moving picture for each use, fed by a mitochondrion |
 | ⚛️ **Count the atoms** | the atoms of the balanced equation come apart and join again, the same number on each side |
-| 🎬 **Step by step** | aerobic respiration in a cell; yeast and muscle without oxygen; the oxygen debt |
+| 🎬 **Step by step** | aerobic respiration in a cell; yeast and muscle without oxygen; the oxygen debt; the oxygen debt on a graph (a sketch, with no values) |
 | 🎥 **Real films** | the mitochondria of a living cell, a single heart muscle cell beating, a seedling growing |
 | 🌡️ **Two benches** | germinating and boiled seeds in vacuum flasks; yeast with a blue dye at four temperatures |
 | 🟡 **A Venn diagram** | Dr Mompel's own diagram of aerobic and anaerobic respiration, to complete |

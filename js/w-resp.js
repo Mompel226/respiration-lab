@@ -1,5 +1,5 @@
 /* ============================================================
-   w-resp.js — the Respiration Lab's three step animations.
+   w-resp.js — the Respiration Lab's four step animations.
 
    Each step's words are in parts with their level (the Inheritance Lab's rule): IGCSE lines first; an IB line names its statement of
    the IB Biology guide (2025) in the line itself; Beyond lines are in neither syllabus.
@@ -11,7 +11,8 @@
    - lactic acid leaves the muscle in a vein and reaches the liver through the heart, a lung, the heart and the aorta, inside the vessels (js/rs-art.js);
    - the heart and the breathing never stand still, also while a step waits for the reader;
    - after exercise, the heart and the breathing stay fast until the oxygen debt has been removed.
-   THE FENCE: no film counts, times or graphs anything about exercise or breathing (Breathing Rate Lab report, T11T12).
+   THE FENCE: no film counts or times anything about exercise or breathing (Breathing Rate Lab report, T11T12); the one graph, the oxygen
+   uptake of the oxygen debt (Daniel's go, 27 Nov 2026), is a sketch with no values.
    ============================================================ */
 (function (global) {
   'use strict';
@@ -327,7 +328,7 @@
   }));
 
   /* ==================================================================================== 3. The oxygen debt, step by step
-     One real body. Nothing is counted, timed or graphed (his breathing-rate practical is assessed). */
+     One real body. Nothing is counted or timed (his breathing-rate practical is assessed); its graph is the next film, a sketch with no values. */
   var DEBT_M = [0, 5, 10.5, 16, 22, 27.5, 33, 38];
   var N = 14;
   function heartK(t) { return t < 1 ? 0 : t < 4 ? ease(seg(t, 1, 4)) : t < 33.4 ? 1 : 1 - ease(seg(t, 33.4, 37)); }
@@ -542,6 +543,177 @@
           if (t >= 16.8) it.push({ id: 'lu', text: 'lungs', x: lg[0], y: lg[1], side: 'T' });
           return it;
         }
+      };
+    }
+  }));
+
+  /* ==================================================================================== 4. The oxygen debt on a graph
+     Daniel, 27 Nov 2026: "no need to add data, just add the graph and show what basically explain the graph". A sketch of the
+     rate of oxygen uptake against time, with no values: no number on an axis, a label or a pill. The words are the 0610 mark
+     schemes' (October/November 2015 paper 32 Q2: "increase", "reaches a plateau", "more gradual decrease", "returns to resting";
+     October/November 2012 paper 33 Q4(d): not enough oxygen supplied during exercise, anaerobic respiration, lactic acid, extra
+     oxygen to break it down). True at every frame:
+     - the muscles need more oxygen at once when exercise starts (the dashed line), but the uptake increases gradually: the
+       yellow area between the two is where too little oxygen reaches the muscles and lactic acid forms;
+     - after exercise the uptake decreases gradually to the resting rate: the red area between the curve and the resting rate
+       is the oxygen debt, and it is larger than the yellow area (it also refills the oxygen stores);
+     - no race, no athlete, no breathing rate and no value (his private test T11T12 and his assessed breathing-rate report). */
+  var GR_M = [0, 5, 10.5, 16, 21.5, 27.5, 33, 37];
+  var G0 = .14, G1 = .56, G2 = .9;                        /* exercise starts, exercise stops, back to the resting rate */
+  /* where the pen is on the time axis, 0 to 1, at each moment of the film */
+  function penAt(t) {
+    if (t < 5) return G0 * ease(seg(t, 0, 3.5));
+    if (t < 16) return lerp(G0, .3, seg(t, 5, 9.5));
+    if (t < 21.5) return lerp(.3, G1, seg(t, 16, 20));
+    if (t < 33) return t < 27.5 ? lerp(G1, .8, seg(t, 21.5, 26.5)) : lerp(.8, .86, seg(t, 27.5, 30));
+    return lerp(.86, 1, seg(t, 33, 36));                    /* the curve meets the resting rate (G2) in the last step */
+  }
+  /* the rate of oxygen uptake, 0 = the resting rate, 1 = what the muscles need during the exercise */
+  function upAt(g) {
+    if (g <= G0) return 0;
+    if (g <= G1) return 1 - Math.exp(-(g - G0) / .035);
+    /* a fast fall, then a slow one, reaching the resting rate exactly at G2 with no bump */
+    var e = function (d) { return .5 * Math.exp(-d / .03) + .5 * Math.exp(-d / .085); }, d = Math.min(g - G1, G2 - G1), end = e(G2 - G1);
+    return (e(d) - end) / (e(0) - end);
+  }
+  function within(v, a, b) { return v < a ? a : v > b ? b : v; }
+  var GC = { up: '#8FE3FF', need: '#F4B942', rest: '#A9B8C6', def: '244,185,66', debt: '240,103,90', ink: '#E9EEF3', soft: '#C3D0DC' };
+  var LEGEND = [
+    { k: 'up', kind: 'line', text: 'rate of oxygen uptake', from: 0 },
+    { k: 'rest', kind: 'dot', text: 'resting rate', from: .6 },
+    { k: 'need', kind: 'dash', text: 'oxygen the muscles need', from: 5 },
+    { k: 'def', kind: 'area', text: 'not enough oxygen: lactic acid forms', from: 5.6 },
+    { k: 'debt', kind: 'area', text: 'oxygen debt', from: 21.8 }
+  ];
+
+  L.add('debtgraph', Film({
+    title: 'The oxygen debt on a graph',
+    aria: 'A sketch graph, with no values, of the rate of oxygen uptake against time. At rest the rate is low and constant. When vigorous exercise starts, the muscles need more oxygen at once, but the rate of oxygen uptake increases gradually: in the yellow area the muscles receive less oxygen than they need, and lactic acid forms. The rate reaches a plateau. When the exercise stops, the rate decreases gradually to the resting rate: the red area between the curve and the resting rate is the oxygen debt.',
+    pills: [['m', 'Muscles:'], ['d', 'Oxygen debt:']],
+    credit: 'A sketch of the shape only, drawn for this lab: nothing here is measured. Its words are those of the 0610 mark schemes (October/November 2012, paper 33; October/November 2015, paper 32).',
+    M: GR_M,
+    steps: [
+      { t: 0, h: 'At rest', p: [['ig', 'This graph shows the **rate of oxygen uptake**: the volume of oxygen the body absorbs each minute. At rest it is low and constant: the **resting rate**. The graph is a sketch of the shape, so it has no values.']] },
+      { t: 5, h: 'Exercise starts', p: [['ig', 'Vigorous exercise starts. The muscles contract more strongly, so they need more energy at once, and more oxygen for aerobic respiration (the **yellow dashed line**). The heart rate and the breathing rate increase gradually, so the rate of oxygen uptake **increases gradually**.']] },
+      { t: 10.5, h: 'Not enough oxygen', p: [['ig', 'In the **yellow area**, the muscles receive **less oxygen than they need**. So some muscle cells **respire anaerobically** and form **lactic acid**, which builds up in the muscles and the blood.'], ['bey', 'Biologists call the yellow area the **oxygen deficit**. During it, oxygen stored in the muscles and the blood is also used.']] },
+      { t: 16, h: 'The rate reaches a plateau', p: [['ig', 'The rate of oxygen uptake **reaches a plateau**: it remains constant, because the heart and the lungs now supply oxygen as fast as the muscles use it. The lactic acid that formed is still in the muscles and the blood.']] },
+      { t: 21.5, h: 'The exercise stops', p: [['ig', 'The exercise stops. The muscles no longer contract strongly, so the dashed line returns to the resting rate. But the rate of oxygen uptake **decreases gradually**, because the **deeper and faster breathing** and the **fast heart rate** continue.']] },
+      { t: 27.5, h: 'The oxygen debt is an area', p: [['ig', 'The **red area** is the extra oxygen absorbed after the exercise, above the resting rate. This is the **oxygen debt**: the oxygen needed after exercise to remove the lactic acid. In the **liver**, this oxygen is used for the **aerobic respiration of the lactic acid**.'], ['bey', 'Some of this oxygen also refills the oxygen stores of the muscles and the blood, so the oxygen debt is usually larger than the oxygen deficit.']] },
+      { t: 33, h: 'Back to the resting rate', p: [['ig', 'When the oxygen debt has been removed, the rate of oxygen uptake **returns to the resting rate**. A larger red area shows a larger oxygen debt.']] }
+    ],
+    make: function () {
+      var W = 560, H = 440, amb = 0, lay0 = null;
+      /* the graph's place on the picture, from the size of its words (larger on a phone): the legend under it, in rows */
+      function layout(c, fs) {
+        var pad = fs * .75, lh = fs * 1.22, sw = fs * 1.7, gap = fs * 1.1, rows = [{ its: [], n: 1 }], x = 0, inner = W - 2 * pad;
+        c.font = '600 ' + fs + 'px Inter, sans-serif';
+        LEGEND.forEach(function (q) {
+          /* a line too long for the picture breaks after its colon */
+          var lines = [q.text], tw = c.measureText(q.text).width;
+          if (sw + fs * .45 + tw > inner && q.text.indexOf(': ') > 0) { var i = q.text.indexOf(': '); lines = [q.text.slice(0, i + 1), q.text.slice(i + 2)]; tw = Math.max(c.measureText(lines[0]).width, c.measureText(lines[1]).width); }
+          var w = sw + fs * .45 + tw, row = rows[rows.length - 1];
+          if (x && x + gap + w > inner) { row = { its: [], n: 1 }; rows.push(row); x = 0; }
+          row.its.push({ q: q, lines: lines, x: pad + (x ? x + gap : 0), w: w }); row.n = Math.max(row.n, lines.length);
+          x = x ? x + gap + w : w;
+        });
+        var legH = rows.reduce(function (n, r) { return n + r.n * lh + fs * .28; }, 0), legTop = H - pad - legH;
+        var left = pad + fs * 1.9, right = W - pad, gx = function (g) { return left + 4 + g * (right - left - 10); };
+        /* when the two moments' words would meet, each takes two lines */
+        var wS = c.measureText('exercise starts').width, wE = c.measureText('exercise stops').width, two = gx(G0) + wS / 2 + fs * .8 > gx(G1) - wE / 2;
+        var bottom = legTop - fs * 2.5, top = pad + fs * (two ? 2.95 : 1.7), ph = bottom - top, rest = bottom - .17 * ph, need = top + .12 * ph;
+        return { fs: fs, pad: pad, rows: rows, lh: lh, sw: sw, legTop: legTop, top: top, bottom: bottom, left: left, right: right, rest: rest, need: need, two: two,
+                 x: gx, y: function (u) { return rest - u * (rest - need); } };
+      }
+      function text(c, s, x, y, fs, col, al, wt) { c.font = (wt || 600) + ' ' + fs + 'px Inter, sans-serif'; c.fillStyle = col; c.textAlign = al || 'left'; c.textBaseline = 'middle'; c.fillText(s, x, y); c.textAlign = 'left'; }
+      /* the area between the curve and a level (the dashed line, or the resting rate), from g0 to g1 */
+      function area(c, G, g0, g1, up, rgb, a, hatch) {
+        if (g1 <= g0 || a <= 0) return;
+        c.save(); c.beginPath(); c.moveTo(G.x(g0), up ? G.y(1) : G.y(0));
+        for (var g = g0; g <= g1 + 1e-9; g += .002) c.lineTo(G.x(Math.min(g, g1)), G.y(upAt(Math.min(g, g1))));
+        c.lineTo(G.x(g1), up ? G.y(1) : G.y(0)); c.closePath();
+        c.fillStyle = 'rgba(' + rgb + ',' + a.toFixed(3) + ')'; c.fill();
+        if (hatch) stripes(c, G.left, G.top, G.right - G.left, G.bottom - G.top, G.fs, rgb);
+        c.restore();
+      }
+      /* yellow stripes: on the dark ground a pale yellow reads as brown, and the stripes tell the two areas apart without their colours */
+      function stripes(c, x, y, w, h, fs, rgb) {
+        c.clip(); c.strokeStyle = 'rgba(' + rgb + ',.9)'; c.lineWidth = 1.7; c.beginPath();
+        for (var k = -h; k < w; k += fs * .62) { c.moveTo(x + k, y + h); c.lineTo(x + k + h, y); }
+        c.stroke();
+      }
+      function draw(c, t, lay) {
+        if (lay) lay0 = lay;
+        var fs = within((lay0 ? lay0.f : 14) * .98, 12.5, 28), G = layout(c, fs), pen = penAt(t), T = t + amb, pulse = .5 + .5 * Math.sin(T * 3.2);
+        screen(c, W, H, '#10263A', '#0A1826', function () {
+          /* the two areas, under the lines */
+          var hiDef = t >= 10.5 && t < 16 ? .16 * pulse : 0, hiDebt = t >= 27.5 ? .16 * pulse * (t < 33 ? 1 : .5) : 0;
+          area(c, G, G0, Math.min(pen, G1), true, GC.def, .3 + hiDef, true);
+          area(c, G, G1, Math.min(pen, G2), false, GC.debt, .6 + hiDebt);
+          /* when the exercise starts and stops */
+          c.save(); c.setLineDash([fs * .3, fs * .35]); c.strokeStyle = 'rgba(233,238,243,.38)'; c.lineWidth = 1.2;
+          [[G0, 5, 'exercise starts'], [G1, 21.5, 'exercise stops']].forEach(function (m) {
+            var a = seg(t, m[1], m[1] + .5); if (a <= 0) return;
+            c.globalAlpha = a; c.beginPath(); c.moveTo(G.x(m[0]), G.top); c.lineTo(G.x(m[0]), G.bottom); c.stroke();
+            c.font = '600 ' + fs + 'px Inter, sans-serif';
+            var ln = G.two ? ['exercise', m[2].slice(9)] : [m[2]], tw = c.measureText(ln[0]).width, cx = within(G.x(m[0]), G.pad + tw / 2, W - G.pad - tw / 2);
+            ln.forEach(function (s1, i) { text(c, s1, cx, G.top - fs * .75 - (ln.length - 1 - i) * G.lh, fs, GC.soft, 'center'); });
+          });
+          c.restore();
+          /* the axes, with no values */
+          c.strokeStyle = GC.ink; c.lineWidth = 1.8; c.beginPath(); c.moveTo(G.left, G.top); c.lineTo(G.left, G.bottom); c.lineTo(G.right, G.bottom); c.stroke();
+          c.fillStyle = GC.ink; c.beginPath(); c.moveTo(G.left, G.top - 7); c.lineTo(G.left - 4.5, G.top + 2); c.lineTo(G.left + 4.5, G.top + 2); c.closePath(); c.fill();
+          c.beginPath(); c.moveTo(G.right + 2, G.bottom); c.lineTo(G.right - 7, G.bottom - 4.5); c.lineTo(G.right - 7, G.bottom + 4.5); c.closePath(); c.fill();
+          c.save(); c.translate(G.pad + fs * .55, (G.top + G.bottom) / 2); c.rotate(-Math.PI / 2); text(c, 'rate of oxygen uptake', 0, 0, fs, GC.ink, 'center', 700); c.restore();
+          text(c, 'time', (G.left + G.right) / 2, G.bottom + fs * 1.15, fs, GC.ink, 'center', 700);
+          /* the resting rate, dotted, across the whole graph */
+          var ra = seg(t, .6, 1.2);
+          if (ra > 0) { c.save(); c.globalAlpha = ra; c.setLineDash([1.5, fs * .32]); c.lineCap = 'round'; c.strokeStyle = GC.rest; c.lineWidth = 2.4; c.beginPath(); c.moveTo(G.x(0), G.y(0)); c.lineTo(G.x(1), G.y(0)); c.stroke(); c.restore(); }
+          /* the rate of oxygen uptake, drawn as far as the pen */
+          c.strokeStyle = GC.up; c.lineWidth = 3.2; c.lineJoin = 'round'; c.beginPath();
+          for (var g = 0; g <= pen + 1e-9; g += .002) { var gg = Math.min(g, pen), px = G.x(gg), py = G.y(upAt(gg)); if (g) c.lineTo(px, py); else c.moveTo(px, py); }
+          c.stroke();
+          /* what the muscles need, dashed, over the curve: it rises at once when the exercise starts and returns at once when it stops */
+          if (pen > G0) {
+            c.save(); c.setLineDash([fs * .55, fs * .4]); c.strokeStyle = GC.need; c.lineWidth = 2.6; c.beginPath();
+            c.moveTo(G.x(G0), G.y(0)); c.lineTo(G.x(G0), G.y(1)); c.lineTo(G.x(Math.min(pen, G1)), G.y(1));
+            if (pen > G1) { c.lineTo(G.x(G1), G.y(0)); }
+            c.stroke(); c.restore();
+          }
+          /* the pen */
+          var pp = [G.x(pen), G.y(upAt(pen))];
+          c.fillStyle = 'rgba(143,227,255,' + (.22 + .18 * pulse).toFixed(3) + ')'; c.beginPath(); c.arc(pp[0], pp[1], fs * .62, 0, TAU); c.fill();
+          c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(pp[0], pp[1], fs * .26, 0, TAU); c.fill();
+          /* the legend, each line and area named once it is on the graph */
+          var yRow = G.legTop;
+          G.rows.forEach(function (row) {
+            var y = yRow + row.n * G.lh / 2; yRow += row.n * G.lh + fs * .28;
+            row.its.forEach(function (it) {
+              var q = it.q, a = seg(t, q.from, q.from + .5); if (a <= 0) return;
+              c.save(); c.globalAlpha = a; var x0 = it.x, x1 = it.x + G.sw;
+              if (q.kind === 'area') { c.fillStyle = 'rgba(' + GC[q.k] + ',' + (q.k === 'def' ? .3 : .74) + ')'; c.beginPath(); c.rect(x0, y - fs * .42, G.sw, fs * .84); c.fill(); if (q.k === 'def') { c.save(); stripes(c, x0, y - fs * .42, G.sw, fs * .84, fs, GC.def); c.restore(); } }
+              else {
+                c.strokeStyle = GC[q.k]; c.lineWidth = q.kind === 'line' ? 3.2 : q.kind === 'dash' ? 2.6 : 2.4; c.lineCap = q.kind === 'dot' ? 'round' : 'butt';
+                c.setLineDash(q.kind === 'dash' ? [fs * .55, fs * .4] : q.kind === 'dot' ? [1.5, fs * .32] : []);
+                c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke();
+              }
+              it.lines.forEach(function (s1, i) { text(c, s1, x1 + fs * .45, y + (i - (it.lines.length - 1) / 2) * G.lh, fs, GC.ink, 'left', 600); });
+              c.restore();
+            });
+          });
+        });
+      }
+      return {
+        W: W, H: H,
+        /* in the picture's column the graph keeps its own shape; on a phone it is taller, so that its words can be larger */
+        fit: function (a, Dw) { H = Dw && Dw < 440 ? 680 : 440; this.H = H; },
+        seek: function () { amb = 0; }, to: function () {},
+        idle: function (d) { amb += d; },
+        draw: draw,
+        read: function (t, pill) {
+          pill('m', t < 5 ? 'at rest' : t < 21.5 ? 'working hard' : 'at rest', t >= 5 && t < 21.5 ? 'warn' : 'ok');
+          pill('d', t < 5.6 ? 'none' : t < 16 ? 'building up' : t < 21.5 ? 'not yet removed' : t < 33.9 ? 'being removed' : 'removed', t >= 5.6 && t < 33.9 ? 'warn' : 'ok');
+        },
+        labels: function () { return []; }
       };
     }
   }));

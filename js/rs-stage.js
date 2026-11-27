@@ -128,7 +128,7 @@
         if (colEl && !nar && !(global.matchMedia && global.matchMedia('(max-width: 1000px)').matches)) room = colEl.getBoundingClientRect().bottom - S.fig.getBoundingClientRect().top - 8;
         var fill = room >= 300;
         S.fig.classList.toggle('mf__fig--fill', fill);
-        if (scene.fit) scene.fit(fill ? Dw / room : 0);
+        if (scene.fit) scene.fit(fill ? Dw / room : 0, Dw);   /* Dw: a graph with words takes more height on a phone */
         lay = frame(svg, bg, scene.W, scene.H, Dw, nar, 14.5, fill);
         if (scene.keyNow && sp) requestAnimationFrame(function () { keyAt(clock(sp.time())); });
       });
