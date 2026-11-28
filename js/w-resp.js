@@ -39,7 +39,7 @@
   var AERO_M = [0, 5, 11, 15.5, 24, 30];
   L.add('aerofilm', Film({
     title: 'Aerobic respiration in a cell',
-    aria: 'Red blood cells bring six oxygen molecules and the plasma brings one glucose molecule to a muscle cell. Two enzymes split the glucose in the cytoplasm. The two smaller molecules enter a mitochondrion, where enzymes release carbon dioxide from them and oxygen forms water, and energy is released. The carbon dioxide diffuses into the plasma, and the energy is used for contraction.',
+    aria: 'Red blood cells bring six oxygen molecules and the plasma brings one glucose molecule to a muscle cell. Enzymes split the glucose in the cytoplasm. The two smaller molecules enter a mitochondrion, where enzymes release carbon dioxide from them and oxygen forms water, and energy is released. The carbon dioxide diffuses into the plasma, and the energy is used for contraction.',
     key: [['rbc', 'red blood cell'], ['glucose', 'glucose'], ['oxygen', 'oxygen'], ['enzymek', 'enzyme'], ['halfm', 'smaller molecule'], ['co2', 'carbon dioxide'], ['water', 'water'], ['spark', 'energy released']],
     M: AERO_M,
     steps: [

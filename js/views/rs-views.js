@@ -33,9 +33,12 @@
     var SP = [[214, 540], [190, 470], [236, 610], [634, 520], [660, 600], [330, 860], [520, 880], [360, 820], [500, 800], [400, 640], [360, 620], [430, 820], [460, 760], [440, 490], [420, 96], [395, 120], [450, 110]].map(function (q, i) { return { x: q[0], y: q[1], p: i * .37 }; });
     /* "Enzymes control respiration": inside the cell, a chain of reactions, each with its own enzyme (Daniel, 27 Nov 2026: the earlier picture
        was "not very informative or accurate", a glucose sliding past four enzymes and never changing). As in the film of station 3:
-       in the cytoplasm an enzyme splits glucose into two smaller molecules; in a mitochondrion another enzyme breaks a smaller molecule
-       down and carbon dioxide is released; a third uses oxygen, and water forms. Each active site fits its own substrate only; each enzyme
-       is unchanged and takes the next molecule; energy is released in small steps, most of it at the end. */
+       in the cytoplasm enzymes split glucose into two smaller molecules; in a mitochondrion other enzymes break a smaller molecule
+       down and carbon dioxide is released; others use oxygen, and water forms. Each active site fits its own substrate only; each enzyme
+       is unchanged and takes the next molecule; energy is released in small steps, most of it at the end.
+       The three that act stand for three groups: no enzyme is numbered, smaller and fainter enzymes between them stand for the many
+       other steps, and a line under the bar says so (Daniel, 28 Nov 2026: "I agree with the simplification, but clearly saying
+       3 enzymes, it's extremely misleading"; a real cell uses more than twenty enzymes for this, each for its own step). */
     var PE = null, CH = null;
     /* Daniel, 27 Nov 2026, on the first version: "it looks like, oh, you provide glucose and you get energy, or you provide oxygen and
        you get energy. So why not just one?" The link is the hydrogen: the enzymes take hydrogen from the glucose and its smaller
@@ -43,7 +46,7 @@
        is needed because it takes the hydrogen from glucose; without it the chain stops. The energy is shown filling a bar, a little
        at a time. */
     function chain(c) {
-      var P = PE = { x: 14, y: IN.y, w: W - 28, h: 346 }, u = (t * .085) % 1, cy = P.y + 124;
+      var P = PE = { x: 14, y: IN.y, w: W - 28, h: 370 }, u = (t * .085) % 1, cy = P.y + 124;
       var eA = { x: P.x + P.w * .17, y: cy, s: 34, site: 'ring' }, mx0 = P.x + P.w * .37, mw = P.w * .6, eB = { x: mx0 + mw * .27, y: cy, s: 30, site: 'half' }, eC = { x: mx0 + mw * .76, y: cy, s: 30, site: 'pair' };
       CH = { a: eA, b: eB, c: eC };
       A.callout(c, B.to([200, 600]), P);
@@ -55,13 +58,17 @@
         function txt(s, x, y, col, size, al) { c.fillStyle = col; c.font = '600 ' + (size || 13) + 'px Inter, sans-serif'; c.textAlign = al || 'center'; c.textBaseline = 'middle'; c.fillText(s, x, y); c.textAlign = 'left'; }
         txt('in the cytoplasm', eA.x, P.y + 18, 'rgba(255,244,196,.95)'); txt('in a mitochondrion', mx0 + mw / 2, P.y + 18, 'rgba(255,244,196,.95)');
         function site(e) { return [e.x - e.s * .62, e.y]; }
-        [eA, eB, eC].forEach(function (e) { A.enzyme(c, e.x, e.y, e.s, Math.PI, 1, e.site); });
-        /* what each enzyme does, under it */
-        txt('enzyme 1', eA.x + 4, cy + 50, 'rgba(255,244,196,.95)'); txt('splits glucose', eA.x + 4, cy + 66, 'rgba(255,244,196,.8)', 12);
-        txt('enzyme 2', eB.x + 4, cy + 50, '#5A2E1C'); txt('releases carbon dioxide', eB.x + 4, cy + 66, '#6E3A26', 12); txt('and hydrogen', eB.x + 4, cy + 80, '#6E3A26', 12);
-        txt('enzyme 3', eC.x + 4, cy + 50, '#5A2E1C'); txt('oxygen + hydrogen', eC.x + 4, cy + 66, '#6E3A26', 12); txt('→ water', eC.x + 4, cy + 80, '#6E3A26', 12);
         var sa = site(eA), sb = site(eB), sc2 = site(eC);
-        /* 1. glucose fits enzyme 1 and is split into two smaller molecules: a little energy */
+        /* the many other steps: smaller, fainter enzymes between the three that act, each group in its own tint; the molecules pass over them */
+        [[lerp(eA.x + 44, mx0 - 12, .2), 'ring'], [lerp(eA.x + 44, mx0 - 12, .8), 'ring'], [lerp(mx0 + 22, sb[0] - 18, .5), 'half'],
+         [lerp(eB.x + 44, sc2[0] - 18, .15), 'half'], [lerp(eB.x + 44, sc2[0] - 18, .5), 'pair'], [lerp(eB.x + 44, sc2[0] - 18, .85), 'pair']]
+          .forEach(function (q) { A.enzyme(c, q[0], cy, 11, Math.PI, .5, q[1]); });
+        [eA, eB, eC].forEach(function (e) { A.enzyme(c, e.x, e.y, e.s, Math.PI, 1, e.site); });
+        /* what each group of enzymes does, under it: never a number */
+        txt('enzymes', eA.x + 4, cy + 50, 'rgba(255,244,196,.95)'); txt('split glucose', eA.x + 4, cy + 66, 'rgba(255,244,196,.8)', 12);
+        txt('enzymes', eB.x + 4, cy + 50, '#5A2E1C'); txt('release carbon dioxide', eB.x + 4, cy + 66, '#6E3A26', 12); txt('and hydrogen', eB.x + 4, cy + 80, '#6E3A26', 12);
+        txt('enzymes', eC.x + 4, cy + 50, '#5A2E1C'); txt('oxygen + hydrogen', eC.x + 4, cy + 66, '#6E3A26', 12); txt('→ water', eC.x + 4, cy + 80, '#6E3A26', 12);
+        /* 1. glucose fits an enzyme in the cytoplasm and is split into two smaller molecules: a little energy */
         if (u < .19) { var g = u < .07 ? along([P.x - 30, cy], [sa[0] - 8, sa[1]], seg(u, 0, .07)) : [sa[0] - 8, sa[1]]; D.mol(c, 'glucose', g[0], g[1] + bob(1) * .3, 0, 66, 1 - seg(u, .17, .19)); }
         var hA = seg(u, .17, .2);
         if (hA > 0 && u < .5) {
@@ -71,29 +78,30 @@
           A.half(c, h2[0], h2[1], Math.PI / 2, 15, hA * (1 - seg(u, .38, .44)), false);
         }
         flashAt(c, sa[0], cy - 22, u, .18, 7);
-        /* 2. enzyme 2 breaks the smaller molecule down: carbon dioxide leaves, and hydrogen is taken from it */
+        /* 2. enzymes in the mitochondrion break the smaller molecule down: carbon dioxide leaves, and hydrogen is taken from it */
         for (var j = 0; j < 3; j++) { var r = seg(u, .45 + j * .02, .62 + j * .02); if (r > 0 && r < 1) D.mol(c, 'co2', sb[0] + j * 12 - 12, lerp(sb[1] - 10, P.y + 50, ease(r)), j, 40, Math.min(1, Math.sin(r * Math.PI) * 1.5)); }
         flashAt(c, sb[0], cy - 22, u, .45, 6);
-        /* the hydrogen, in pairs, carried along to enzyme 3 */
+        /* the hydrogen, in pairs, carried along to the last enzymes */
         for (var hpair = 0; hpair < 3; hpair++) {
           var hr = seg(u, .47 + hpair * .03, .6 + hpair * .03), hfade = 1 - seg(u, .64, .66);
           if (hr <= 0 || hfade <= 0) continue;
           var hp = along([sb[0] + 10, cy + 18 + hpair * 6], [sc2[0] - 10, sc2[1] + 8 - hpair * 6], hr);
           D.ball(c, hp[0] - 4, hp[1], 4.2, C.h); D.ball(c, hp[0] + 4, hp[1], 4.2, C.h);
         }
-        /* 3. at enzyme 3 oxygen takes the hydrogen, and water forms: most of the energy is released here */
+        /* 3. at the last enzymes oxygen takes the hydrogen, and water forms: most of the energy is released here */
         if (u < .66) { var o = u < .58 ? along([P.x + P.w + 20, cy - 50], [sc2[0] - 4, sc2[1] - 8], seg(u, .46, .58)) : [sc2[0] - 4, sc2[1] - 8]; if (u > .46) D.mol(c, 'oxygen', o[0], o[1], 0, 40, 1 - seg(u, .64, .66)); }
         var wv = seg(u, .64, .68);
         if (wv > 0 && u < .97) for (var wi = 0; wi < 2; wi++) { var wp = along([sc2[0] - 4, sc2[1] - 12], [sc2[0] - 30 + wi * 56, P.y + 58], seg(u, .68, .84));   /* water leaves upwards, clear of the words */ D.mol(c, 'water', wp[0], wp[1], wi, 40, wv * (1 - seg(u, .93, .97))); }
         for (var s = 0; s < 7; s++) flashAt(c, sc2[0] - 26 + s * 9, cy - 26 - (s % 3) * 6, u, .65 + s * .01, 8);
-        /* the energy released, filling a bar: a little at enzyme 1, a little at enzyme 2, most of it at enzyme 3 */
-        var bx = P.x + 150, bw = P.w - 170, by = P.y + P.h - 36, fill = .05 * ease(seg(u, .18, .24)) + .08 * ease(seg(u, .45, .51)) + .87 * ease(seg(u, .65, .76));
+        /* the energy released, filling a bar: a little in the cytoplasm, a little more in the mitochondrion, most of it at the end */
+        var bx = P.x + 150, bw = P.w - 170, by = P.y + 310, fill = .05 * ease(seg(u, .18, .24)) + .08 * ease(seg(u, .45, .51)) + .87 * ease(seg(u, .65, .76));
         fill *= 1 - seg(u, .97, 1);
         txt('energy released', P.x + 16, by + 9, 'rgba(255,244,196,.95)', 13, 'left');
         D.rr(c, bx, by, bw, 18, 9); c.fillStyle = 'rgba(255,255,255,.12)'; c.fill();
         if (fill > .005) { D.rr(c, bx, by, Math.max(6, bw * fill), 18, 9); c.fillStyle = '#FFE680'; c.fill(); }
         if (u > .2 && u < .5) txt('a little energy', bx + 50, by - 12, '#FFE680', 12);
         if (u > .67 && u < .97) txt('most of the energy', bx + bw * .7, by - 12, '#FFE680', 12);
+        txt('Only a few of the many enzymes are drawn: each step has its own enzyme.', P.x + P.w / 2, P.y + 346, 'rgba(255,244,196,.9)', 12.5);
       });
     }
     function flashAt(c, x, y, u, at, s) { var k = seg(u, at, at + .06); if (k > 0 && k < 1) A.spark(c, x, y - 10 * k, s * (.7 + .5 * k), Math.sin(k * Math.PI)); }
