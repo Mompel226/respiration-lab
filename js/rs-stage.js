@@ -120,7 +120,21 @@
         tsLast = ts;
         raf = requestAnimationFrame(amble);
       }
-      sp = L.stepper({ steps: K.readerSteps(cfg.steps, TL.R), end: TL.end, render: draw, flow: TL.flow, stills: K.stillsOf(cfg.steps, TL) });
+      /* a sentence card that only repeated a step is merged into it (Daniel, 27 Nov 2026: "you're not removing information
+         necessarily, you're just kind of merging everything within the animation button"; app.js `inFilm`). spec.cards[i] =
+         { html: [its sentences, marked], head? }: they stand where the step's own line marked 'card' (the words the card
+         said) stood, or first; the step's other lines stay, because they add to the card; with `head` the step takes the
+         card's heading. Without cards the film keeps every line of its own */
+      var steps = !(spec && spec.cards) ? cfg.steps : cfg.steps.map(function (st, i) {
+        var c = spec.cards[i]; if (!c) return st;
+        var o = {}, k, mine = c.html.map(function (x) { return ['ig', x, 'html']; }), out = [], put = false;
+        for (k in st) o[k] = st[k];
+        (st.p || []).forEach(function (q) { if (q[2] === 'card') { if (!put) { out = out.concat(mine); put = true; } } else out.push(q); });
+        o.p = put ? out : mine.concat(out);
+        if (c.head) o.h = c.head;
+        return o;
+      });
+      sp = L.stepper({ steps: K.readerSteps(steps, TL.R), end: TL.end, render: draw, flow: TL.flow, stills: K.stillsOf(steps, TL) });
       var box = K.mount(S, sp, 'mf', cfg.key ? [{ key: cfg.key }].concat(cfg.notes || []) : (cfg.notes || []), function (Dw, nar) {
         narrow = nar;
         /* a film with a body: in the picture's column of a laptop it takes all the room, with its names and its key on it */
@@ -182,6 +196,8 @@
     });
     function pill(k, text, tone, label) {
       var el = pillEl[k]; if (!el) return;
+      el.hidden = !text;   /* a read-out with nothing to say takes no room (the words are on the right) */
+      if (!text) return;
       var i = el.querySelector('i'); if (i.textContent !== text) i.textContent = text;
       if (label) { var bb = el.querySelector('b'); if (bb.textContent !== label) bb.textContent = label; }
       el.className = 'memv__pill' + (tone ? ' is-' + tone : '');
@@ -211,7 +227,8 @@
       if (keyEl && o.fill && keyEl.parentNode !== (whole ? fig : root)) { if (whole) fig.appendChild(keyEl); else root.insertBefore(keyEl, o.read ? read : pk); keyW = 0; }
       if (keyEl && Math.round(rw) !== keyW) { keyW = Math.round(rw); sizeKey(); }
       /* the counters and the key can take another row when the words change: the picture then makes room for them */
-      var key = Math.round(rw) + 'x' + Math.round(H0) + 'x' + (o.read ? read.offsetHeight : 0) + 'x' + (pk.hidden ? 0 : pk.offsetHeight) + 'x' + (keyEl ? keyEl.offsetHeight : 0);
+      /* the button row too: a button that shows in one state only can take a row of its own (27 Nov 2026, "See them in 3D") */
+      var key = Math.round(rw) + 'x' + Math.round(H0) + 'x' + (bar.hidden ? 0 : bar.offsetHeight) + 'x' + (o.read ? read.offsetHeight : 0) + 'x' + (pk.hidden ? 0 : pk.offsetHeight) + 'x' + (keyEl ? keyEl.offsetHeight : 0);
       if (key === lastKey && lay) return true;
       lastKey = key; narrow = rw < 440;
       var cs = global.getComputedStyle(root), pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom), gap = parseFloat(cs.rowGap) || 6;

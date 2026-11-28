@@ -64,6 +64,10 @@ looks the same. The list of every picture and film is in [`assets/photos/CREDITS
 **True at every frame.** Glucose never enters a mitochondrion: it is split in the cytoplasm first. The number of molecules
 always agrees with the equation. Where the syllabus simplifies, the lab keeps the syllabus's words and says what is beyond them.
 
+**The picture first.** On a laptop the picture's column is as wide as the picture can stand in the window's height, and the
+words beside it keep at least 600 px. Its buttons, key and read-outs are small, its caption is one line, and who drew it waits
+under the i. `tools/space-check.mjs` measures each picture's share of the column after every button, at five Mac sizes.
+
 </details>
 
 ---

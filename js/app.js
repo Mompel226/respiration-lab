@@ -451,8 +451,45 @@
     }
     var partName = null;
 
+    /* One place for each idea (Daniel, 27 Nov 2026, on the Molecules Lab: a station's animation and the cards under it said the
+       same things one by one; "the different stages are actually what you click … you're not removing information
+       necessarily, you're just kind of merging everything within the animation button"; "this makes sense for those that
+       clearly repeat the information. There are others that add extra things. For those, it doesn't make sense"; his yes for
+       every lab the same evening). A sentence of What you need to know marked `inFilm: '<film type>'` is not drawn as a card:
+       its words become that film's step `step` (or, `step` a list, its sentences become one step each, in order), marked here
+       as a card's are, with its key words' links; `title`: the step takes the card's heading. The master keeps the sentence
+       where it was, so its place, group and tags do not move. A card that adds what the animation does not show stays a card.
+       The Molecules Lab's code (molecules-lab 44bf3b1), the same in every lab */
+    var merged = {};
+    (st.learn.exam || []).forEach(function (b, i) { if (b && typeof b === 'object' && b.inFilm && !offOf(b, i)) merged[i] = b; });
+    function sentences(t) { return String(t).replace(/([.!?])\s+(?=[A-Z_])/g, '$1\u0001').split('\u0001'); }
+    CARDS_FOR = function (type) {
+      var out = null;
+      Object.keys(merged).forEach(function (i) {
+        var b = merged[i]; if (b.inFilm !== type) return;
+        var many = Array.isArray(b.step), parts = many ? sentences(b.text) : [b.text], at = many ? b.step : [b.step];
+        if (!out) { out = {}; if (window.Terms && Terms.freshCard) Terms.freshCard(); }   /* read on its own, as a card is */
+        /* a card's sentences for one step are one line of that step (one IGCSE mark, not one a sentence) */
+        var by = {}, ks = [];
+        parts.forEach(function (t, j) { var k = at[j]; if (k == null) return; if (!by[k]) { by[k] = []; ks.push(k); } by[k].push(t); });
+        ks.forEach(function (k) {
+          var c = out[k] || (out[k] = { html: [] });
+          if (window.Terms && Terms.teach) Terms.teach(true);
+          c.html.push(M(by[k].join(' ')));
+          if (window.Terms && Terms.teach) Terms.teach(false);
+          if (b.title && !many) c.head = b.head;
+        });
+      });
+      return out;
+    };
+
     (st.learn.exam || []).forEach(function (b, i) {
       var offK = offOf(b, i);
+      /* merged into its film: only the film cards anchored here are drawn */
+      if (merged[i]) {
+        filmsAt(widgets, 'before', i).concat(filmsAt(widgets, 'after', i)).forEach(function (g) { list.appendChild(filmCard(g)); });
+        return;
+      }
       /* sentences that belong to a named part — "Setting it up" — sit together in their own block */
       var part = (typeof b === 'object' && b.part) || null;
       if (!offK && part !== partName) {
@@ -1089,9 +1126,12 @@
     });
     return out;
   }
+  var CARDS_FOR = null;   /* paintLearn's: the sentence cards merged into a film, by the film's type */
   function filmCard(ws) {
     var li = document.createElement('li'), title = '', n = 0, twins = 0;
     ws.forEach(function (w) {
+      var cs = CARDS_FOR && w.film ? CARDS_FOR(w.type) : null;
+      if (cs) { var w2 = {}; for (var k in w) w2[k] = w[k]; w2.cards = cs; w = w2; }
       var el = window.Learn.widget(w, WIDGET_CTX);
       if (!el) return;
       if (w.anchor && el.setAttribute) el.setAttribute('data-anchor', w.anchor);

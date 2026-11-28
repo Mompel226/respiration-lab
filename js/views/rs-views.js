@@ -476,10 +476,12 @@
       },
       read: function (pill) {
         if (mode === 'where') { pill('e', 'in the mitochondria', 'ok', 'Where:'); pill('n', 'have many mitochondria, for more aerobic respiration', '', 'Muscle cells:'); return; }
-        if (mode === 'real') { pill('e', 'electron micrographs of a human cell', 'ok', 'Real mitochondria:'); pill('n', 'many are long tubes, not ovals. Press See them in 3D', '', 'In 3D:'); return; }
+        if (mode === 'real') { pill('e', 'electron micrographs of a human cell', 'ok', 'Real mitochondria:'); pill('n', 'many are long tubes, not ovals', '', 'In 3D:'); return; }
         if (mode === 'word') pill('e', 'glucose + oxygen → carbon dioxide + water', 'ok', 'Word equation:');
         else pill('e', 'C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O', 'ok', 'Balanced equation:');
-        if (mode === 'word') pill('n', 'Energy is released, but it is not a substance', '', 'Note:');
+        /* the word equation's card on the right says that energy is released but is not a substance: the picture does not repeat it
+           (Daniel, 27 Nov 2026: "Text should be on the right … the animation is the priority") */
+        if (mode === 'word') pill('n', '');
         else pill('n', '6 carbon, 12 hydrogen, 18 oxygen atoms', 'ok', 'Each side:');
       }
     };
@@ -491,6 +493,9 @@
     var atomKey = document.createElement('p'); atomKey.className = 'rsv-note'; atomKey.innerHTML = '<span style="color:#76839C">●</span> carbon &nbsp; <span style="color:#E6EEF5;-webkit-text-stroke:.6px #51667A">●</span> hydrogen (small) &nbsp; <span style="color:#FF7468">●</span> oxygen'; atomKey.hidden = true;
     /* the key of the atoms lies on the picture: under it, it would need a row the column does not have */
     atomKey.classList.add('rsv-note--on'); V.fig.style.position = 'relative'; V.fig.appendChild(atomKey);
+    /* "See them in 3D" stands beside the read-out that names it, so the row of buttons keeps one line and the picture its
+       height (Daniel, 27 Nov 2026: "the animation is the priority") */
+    var read3 = V.el.querySelector('.memv__read'); if (read3 && V.button('in3d')) read3.appendChild(V.button('in3d'));
     function sync() { pressAll(V, ['word', 'balanced', 'atoms', 'where', 'real'], mode); var b3 = V.button('in3d'); if (b3) b3.hidden = mode !== 'real'; atomKey.hidden = mode !== 'atoms'; if (V.isStill() && mode === 'atoms') runAt = 11; V.names(); V.paint(); }
     /* the 3D steps of the Foundations hub (js/mitodemo.js, with three.js), loaded the first time they are asked for */
     var dlg = null, demo = null, demoLoading = null;
@@ -633,9 +638,11 @@
         it.push({ id: 'th', text: 'thermometer', x: FL[0].x + 16, y: 28, side: 'T' }, { id: 'cw', text: 'cotton wool', x: FL[1].x - 36, y: 112, side: 'T' }, { id: 'vf', text: 'vacuum flask', x: FL[1].x + 68, y: 180, side: 'T' });
         return it;
       },
+      /* before the press, one short read-out: the button above already says what to press (Daniel, 27 Nov 2026: "too much text") */
       read: function (pill) {
-        pill('a', !on ? 'Press Leave the flasks for two days' : rise() < 1 ? 'temperature increases' : 'temperature has increased', on ? 'warn' : '');
-        pill('b', on ? 'temperature does not change' : 'Press Leave the flasks for two days', on ? 'ok' : '');
+        if (!on) { pill('a', 'the same temperature', '', 'Both flasks:'); pill('b', ''); return; }
+        pill('a', rise() < 1 ? 'temperature increases' : 'temperature has increased', 'warn', 'Germinating seeds:');
+        pill('b', 'temperature does not change', 'ok', 'Boiled seeds:');
       }
     };
     var V = RV({ scene: scene, aria: 'Two vacuum flasks with thermometers, one holding germinating seeds and one holding boiled seeds. The temperature rises only in the flask of germinating seeds.', barLabel: 'The investigation',
@@ -684,9 +691,9 @@
           .concat([{ id: 'tube', text: on ? 'yeast with methylene blue' : 'yeast suspension', x: 86, y: 262, side: 'B' }, { id: 'bath', text: 'water bath', x: 228 + 46, y: 340, side: 'B' }]);
       },
       read: function (pill) {
-        var st = !on ? 'Press Add the dye' : k(T[2]) < 1 ? 'Watch the four tubes' : k(T[1]) < 1 ? 'At 35 °C the blue colour has gone' : k(T[0]) < 1 ? 'At 20 °C the blue colour has gone too' : 'At 65 °C the blue colour stays';
+        var st = !on ? 'no dye yet' : k(T[2]) < 1 ? 'Watch the four tubes' : k(T[1]) < 1 ? 'At 35 °C the blue colour has gone' : k(T[0]) < 1 ? 'At 20 °C the blue colour has gone too' : 'At 65 °C the blue colour stays';
         pill('s', st, on ? 'ok' : '');
-        pill('a', on ? 'stays blue, because air reaches the dye there' : 'no dye yet', '');
+        pill('a', on ? 'stays blue, because air reaches the dye there' : '', '');
       }
     };
     /* the pale yeast, with the blue dye in it as far as the dye has sunk (s) and not yet changed by the yeast (f) */

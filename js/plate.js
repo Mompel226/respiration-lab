@@ -30,11 +30,31 @@
   function init(o) {
     opts = o || {};
     col = document.querySelector('.viewcol'); host = el('viewHost'); sim = el('simHost'); said = el('said');
+    wireCaption();
   }
 
-  /* A picture made of several photographs gives `credits` ([[name, credit], …]): a folded list under the picture, never
-     words on the photographs (Daniel, 4 Nov 2026: "not on the images, because it covers the image"). It stays open while
-     the reader presses the photographs, which redraws this line. */
+  /* The caption is one line: what the picture shows. Who drew it, what it draws to scale or leaves out, and a picture of
+     several photographs' credits (`credits`: [[name, credit], …], never words on the photographs: Daniel, 4 Nov 2026, "it
+     covers the image") wait one press away under the i beside it (Daniel, 27 Nov 2026: "the animation is the priority …
+     too much text that impedes the visualization"; the Membrane Lab's caption, the same in every lab). It stays open while
+     the picture redraws this line; a press anywhere else, or Esc, closes it. */
+  function shutMore(back) {
+    var b = said && said.querySelector('.said__i[aria-expanded="true"]'); if (!b) return;
+    b.setAttribute('aria-expanded', 'false');
+    var m = said.querySelector('.said__more'); if (m) m.hidden = true;
+    if (back) b.focus();
+  }
+  function wireCaption() {
+    if (!said) return;
+    said.addEventListener('click', function (e) {
+      var b = e.target && e.target.closest ? e.target.closest('.said__i') : null, m = said.querySelector('.said__more');
+      if (!b || !m) return;
+      var on = b.getAttribute('aria-expanded') !== 'true';
+      b.setAttribute('aria-expanded', on ? 'true' : 'false'); m.hidden = !on;
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') shutMore(true); });
+    document.addEventListener('pointerdown', function (e) { if (!said.contains(e.target)) shutMore(false); });
+  }
   function caption(v) {
     if (!said) return;
     /* A rich picture needs the whole column (Daniel, 23 Nov 2026: "the 3D space is very short ... the reference ... cuts a line"): a view with
@@ -52,12 +72,14 @@
       note.querySelector('.pinfo__t').innerHTML = '<span class="pinfo__say">' + (v.say || '') + '</span>' + (v.credit ? '<span class="pinfo__credit">' + v.credit + '</span>' : '');
       return;
     }
-    var was = said.querySelector('.said__fold'), open = !!(was && was.open);
+    var was = said.querySelector('.said__i'), open = !!(was && was.getAttribute('aria-expanded') === 'true');
     var list = v && v.credits && v.credits.length ? v.credits : null;
-    said.innerHTML = '<span class="said__name">' + (v && v.say ? v.say : '') + '</span>' +
-      (list ? '<details class="said__fold"' + (open ? ' open' : '') + '><summary>Credits for these photographs</summary><ul class="said__list">' +
-        list.map(function (c) { return '<li><b>' + esc(c[0]) + '</b>: ' + esc(c[1]) + '</li>'; }).join('') + '</ul></details>' :
-        v && v.credit ? '<span class="said__credit">' + v.credit + '</span>' : '');
+    var more = list ? '<span class="said__h">Credits for these photographs</span><span class="said__list">' +
+        list.map(function (c) { return '<span class="said__li"><b>' + esc(c[0]) + '</b>: ' + esc(c[1]) + '</span>'; }).join('') + '</span>' :
+      v && v.credit ? '<span class="said__credit">' + v.credit + '</span>' : '';
+    said.innerHTML = '<span class="said__name">' + (v && v.say ? v.say : '') + '</span>' + (more ?
+      '<button class="said__i" type="button" aria-expanded="' + open + '" aria-controls="saidMore" aria-label="' + (list ? 'Credits for these photographs' : 'About this picture') + '">i</button>' +
+      '<span class="said__more" id="saidMore" role="note"' + (open ? '' : ' hidden') + '>' + more + '</span>' : '');
   }
 
   function showStation(st) {

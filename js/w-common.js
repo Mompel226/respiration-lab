@@ -54,7 +54,9 @@
   var LV = { ig: 'IGCSE', ib: 'IB', ibhl: 'IB HL', bey: 'Beyond' };
   function stepWords(p) {
     if (!Array.isArray(p)) return stepText(p);
-    return p.map(function (q) { return '<span class="sp__lv sp__lv--' + q[0] + '"><b class="sp__lvt">' + LV[q[0]] + '</b> ' + stepText(q[1]) + '</span>'; }).join('');
+    /* [lv, text, 'html']: a sentence card's words merged into the step (rs-stage.js RsFilm), already marked by app.js as the
+       card's were, its key words' links included: drawn as they are */
+    return p.map(function (q) { return '<span class="sp__lv sp__lv--' + q[0] + '"><b class="sp__lvt">' + LV[q[0]] + '</b> ' + (q[2] === 'html' ? q[1] : stepText(q[1])) + '</span>'; }).join('');
   }
   function stepper(opts) {
     var STEPS = opts.steps, END = opts.end, render = opts.render;
